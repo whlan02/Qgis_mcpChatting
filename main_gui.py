@@ -1,18 +1,12 @@
 import asyncio
-import json
 import logging
-import os
-import shutil
 import sys
-from typing import Dict, List, Optional, Any
+from typing import List
 
-import requests
-from dotenv import load_dotenv
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
-                              QTextEdit, QLineEdit, QPushButton, QWidget, QLabel)
-from PySide6.QtCore import QObject, Signal, Slot, Qt, QTimer
+                              QTextEdit, QLineEdit, QPushButton, QWidget, QLabel, QScrollArea, QSizePolicy)
+from PySide6.QtCore import QObject, Signal, Slot, QTimer, Qt
+from PySide6.QtGui import QGuiApplication
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,6 +17,83 @@ from main import Configuration, Server, Tool, LLMClient
 class SignalEmitter(QObject):
     update_chat = Signal(str, str)  # role, content
     tool_progress = Signal(int, int)  # progress, total
+
+class ChatBubbleWidget(QWidget):
+    def __init__(self, text, role="user", parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 5, 10, 5)
+        
+        # Create bubble text
+        self.bubble = QLabel()
+        self.bubble.setWordWrap(True)
+        self.bubble.setMinimumWidth(500)
+        self.bubble.setMaximumWidth(700)
+        self.bubble.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        
+        # Format text based on role
+        formatted_text = f'<div style="color: #2C3E50; font-size: 14px; line-height: 1.5;">{text}</div>'
+        self.bubble.setText(formatted_text)
+        self.bubble.setTextFormat(Qt.RichText)
+        
+        is_user = role == "user"
+        self.bubble.setStyleSheet(f"""
+            QLabel {{
+                background-color: {'#DCF8C6' if is_user else '#FFFFFF'};
+                border-radius: 10px;
+                padding: 12px;
+                margin: {'0 10px 0 50px' if is_user else '0 50px 0 10px'};
+            }}
+        """)
+        
+        # Add avatar
+        avatar = QLabel("👤" if is_user else "🤖")
+        avatar.setStyleSheet("""
+            QLabel {
+                font-size: 24px;
+                margin: 5px;
+            }
+        """)
+        
+        # Arrange layout based on role
+        if is_user:
+            layout.addStretch()
+            layout.addWidget(self.bubble)
+            layout.addWidget(avatar)
+        else:
+            layout.addWidget(avatar)
+            layout.addWidget(self.bubble)
+            layout.addStretch()
+
+class ChatArea(QScrollArea):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWidgetResizable(True)
+        self.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: #F8F9FA;
+            }
+        """)
+        
+        self.container = QWidget()
+        self.container_layout = QVBoxLayout(self.container)
+        self.container_layout.addStretch()
+        self.setWidget(self.container)
+    
+    def add_message(self, text, role="user"):
+        # Remove the last stretch space
+        self.container_layout.takeAt(self.container_layout.count() - 1)
+        
+        # Add new message
+        bubble = ChatBubbleWidget(text, role)
+        self.container_layout.addWidget(bubble)
+        
+        # Add stretch space
+        self.container_layout.addStretch()
+        
+        # Scroll to bottom
+        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
 class ChatSessionGUI(QObject):
     """Orchestrates the interaction between user, LLM, and tools with GUI integration."""
@@ -166,16 +237,19 @@ class MainWindow(QMainWindow):
         
     def init_ui(self):
         self.setWindowTitle("AI Chat Interface")
-        self.setMinimumSize(800, 600)
+        # Set window size to 60% of screen
+        screen = QGuiApplication.primaryScreen().availableGeometry()
+        self.resize(int(screen.width() * 0.6), int(screen.height() * 0.6))
         
         # Main widget and layout
         main_widget = QWidget()
         main_layout = QVBoxLayout(main_widget)
+        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(20, 20, 20, 20)
         
         # Chat display area
-        self.chat_display = QTextEdit()
-        self.chat_display.setReadOnly(True)
-        main_layout.addWidget(self.chat_display)
+        self.chat_area = ChatArea()
+        main_layout.addWidget(self.chat_area, stretch=1)
         
         # Progress bar (initially hidden)
         progress_layout = QHBoxLayout()
@@ -185,16 +259,52 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(progress_layout)
         
         # Input area
-        input_layout = QHBoxLayout()
-        self.input_field = QLineEdit()
+        input_container = QWidget()
+        input_container.setFixedHeight(100)
+        input_container.setStyleSheet("""
+            QWidget {
+                background-color: white;
+                border: 1px solid #E8E8E8;
+                border-radius: 10px;
+            }
+        """)
+        
+        input_layout = QHBoxLayout(input_container)
+        input_layout.setContentsMargins(10, 5, 10, 5)
+        
+        self.input_field = QTextEdit()
         self.input_field.setPlaceholderText("Type your message here...")
-        self.input_field.returnPressed.connect(self.send_message)
+        self.input_field.setStyleSheet("""
+            QTextEdit {
+                border: none;
+                padding: 5px;
+                font-size: 14px;
+                background-color: white;
+            }
+        """)
+        self.input_field.installEventFilter(self)
+        
         self.send_button = QPushButton("Send")
+        self.send_button.setFixedWidth(80)
+        self.send_button.setStyleSheet("""
+            QPushButton {
+                background-color: #87CEEB;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 8px 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #5CACEE;
+            }
+        """)
         self.send_button.clicked.connect(self.send_message)
         
         input_layout.addWidget(self.input_field)
         input_layout.addWidget(self.send_button)
-        main_layout.addLayout(input_layout)
+        main_layout.addWidget(input_container)
         
         self.setCentralWidget(main_widget)
         
@@ -205,19 +315,21 @@ class MainWindow(QMainWindow):
         # Welcome message
         self.update_chat_display("system", "Welcome to the AI Assistant. How can I help you today?")
     
+    def eventFilter(self, obj, event):
+        if obj is self.input_field and event.type() == 6:  # KeyPress event
+            if event.key() == Qt.Key_Return and not event.modifiers():
+                self.send_message()
+                return True
+            elif event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier:
+                cursor = self.input_field.textCursor()
+                cursor.insertText('\n')
+                return True
+        return super().eventFilter(obj, event)
+    
     @Slot(str, str)
     def update_chat_display(self, role, content):
         """Update the chat display with new messages."""
-        if role == "user":
-            self.chat_display.append(f"<p style='color:#0000FF'><b>You:</b> {content}</p>")
-        elif role == "assistant":
-            self.chat_display.append(f"<p style='color:#008000'><b>Assistant:</b> {content}</p>")
-        elif role == "system":
-            self.chat_display.append(f"<p style='color:#800000'><b>System:</b> {content}</p>")
-        
-        # Scroll to bottom
-        scrollbar = self.chat_display.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
+        self.chat_area.add_message(content, role)
     
     @Slot(int, int)
     def update_progress(self, progress, total):
@@ -231,7 +343,7 @@ class MainWindow(QMainWindow):
     
     def send_message(self):
         """Send the message from the input field."""
-        user_input = self.input_field.text().strip()
+        user_input = self.input_field.toPlainText().strip()
         if not user_input:
             return
         

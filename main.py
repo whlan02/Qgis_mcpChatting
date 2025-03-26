@@ -295,52 +295,83 @@ class ChatSession:
 
     async def cleanup_servers(self) -> None:
         """Clean up all servers properly."""
-        cleanup_tasks = []
         for server in self.servers:
-            cleanup_tasks.append(asyncio.create_task(server.cleanup()))
-        
-        if cleanup_tasks:
             try:
-                await asyncio.gather(*cleanup_tasks, return_exceptions=True)
+                await server.cleanup()
             except Exception as e:
-                logging.warning(f"Warning during final cleanup: {e}")
+                logging.warning(f"Warning during cleanup of server: {e}")
 
     async def process_llm_response(self, llm_response: str) -> str:
-        """Process the LLM response and execute tools if needed.
-        
-        Args:
-            llm_response: The response from the LLM.
-            
-        Returns:
-            The result of tool execution or the original response.
-        """
+        """Process the LLM response and execute tools if needed."""
         try:
-            tool_call = json.loads(llm_response)
-            if "tool" in tool_call and "arguments" in tool_call:
-                logging.info(f"Executing tool: {tool_call['tool']}")
-                logging.info(f"With arguments: {tool_call['arguments']}")
-                
-                for server in self.servers:
-                    tools = await server.list_tools()
-                    if any(tool.name == tool_call["tool"] for tool in tools):
-                        try:
-                            result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
-                            
-                            if isinstance(result, dict) and 'progress' in result:
-                                progress = result['progress']
-                                total = result['total']
-                                logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
-                                
-                            return f"Tool execution result: {result}"
-                        except Exception as e:
-                            error_msg = f"Error executing tool: {str(e)}"
-                            logging.error(error_msg)
-                            return error_msg
-                
-                return f"No server found with tool: {tool_call['tool']}"
+            # Try to find all JSON tool calls in the response
+            tool_calls = []
+            current_pos = 0
+            while current_pos < len(llm_response):
+                try:
+                    # Find opening brace
+                    start = llm_response.find('{', current_pos)
+                    if start == -1:
+                        break
+                        
+                    # Find closing brace
+                    count = 1
+                    pos = start + 1
+                    while count > 0 and pos < len(llm_response):
+                        if llm_response[pos] == '{':
+                            count += 1
+                        elif llm_response[pos] == '}':
+                            count -= 1
+                        pos += 1
+                    
+                    if count == 0:
+                        # Extract and parse JSON
+                        json_str = llm_response[start:pos]
+                        tool_call = json.loads(json_str)
+                        if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
+                            tool_calls.append(tool_call)
+                        current_pos = pos
+                    else:
+                        break
+                except json.JSONDecodeError:
+                    current_pos += 1
+                    continue
+            
+            if tool_calls:
+                results = []
+                for tool_call in tool_calls:
+                    result = await self._execute_tool(tool_call)
+                    results.append(result)
+                return "Tool execution results: " + json.dumps(results)
+            
             return llm_response
-        except json.JSONDecodeError:
+        except Exception as e:
+            logging.error(f"Error processing LLM response: {e}")
             return llm_response
+
+    async def _execute_tool(self, tool_call: dict) -> str:
+        """Execute a single tool call."""
+        logging.info(f"Executing tool: {tool_call['tool']}")
+        logging.info(f"With arguments: {tool_call['arguments']}")
+        
+        for server in self.servers:
+            tools = await server.list_tools()
+            if any(tool.name == tool_call["tool"] for tool in tools):
+                try:
+                    result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
+                    
+                    if isinstance(result, dict) and 'progress' in result:
+                        progress = result['progress']
+                        total = result['total']
+                        logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
+                        
+                    return f"Tool execution result: {result}"
+                except Exception as e:
+                    error_msg = f"Error executing tool: {str(e)}"
+                    logging.error(error_msg)
+                    return error_msg
+        
+        return f"No server found with tool: {tool_call['tool']}"
 
     async def initialize_servers(self) -> bool:
         """Initialize all servers and collect tools."""
@@ -365,9 +396,25 @@ class ChatSession:
         system_message = f"""You are a helpful assistant with access to these tools: 
 
 {tools_description}
-Choose the appropriate tool based on the user's question. If no tool is needed, reply directly.
+Choose the appropriate tool(s) based on the user's question. If no tool is needed, reply directly.
 
-IMPORTANT: When you need to use a tool, you must ONLY respond with the exact JSON object format below, nothing else:
+IMPORTANT: When you need to use multiple tools, you MUST combine them into a single JSON array like this:
+[
+    {{
+        "tool": "get_layers",
+        "arguments": {{}}
+    }},
+    {{
+        "tool": "remove_layer",
+        "arguments": {{
+            "layer_id": "<id_from_get_layers_result>"
+        }}
+    }}
+]
+
+DO NOT send multiple separate tool calls in the same message. Always use the array format for multiple tools.
+
+For a single tool, use this format:
 {{
     "tool": "tool-name",
     "arguments": {{
@@ -375,7 +422,7 @@ IMPORTANT: When you need to use a tool, you must ONLY respond with the exact JSO
     }}
 }}
 
-After receiving a tool's response:
+After receiving tool responses:
 1. Transform the raw data into a natural, conversational response
 2. Keep responses concise but informative
 3. Focus on the most relevant information
@@ -459,36 +506,74 @@ try:
         async def process_llm_response(self, llm_response: str) -> str:
             """Process the LLM response and execute tools if needed."""
             try:
-                tool_call = json.loads(llm_response)
-                if "tool" in tool_call and "arguments" in tool_call:
-                    logging.info(f"Executing tool: {tool_call['tool']}")
-                    logging.info(f"With arguments: {tool_call['arguments']}")
-                    
-                    # Display the tool execution in the chat
-                    self.signals.update_chat.emit("assistant", f"Executing tool: {tool_call['tool']}")
-                    
-                    for server in self.servers:
-                        tools = await server.list_tools()
-                        if any(tool.name == tool_call["tool"] for tool in tools):
-                            try:
-                                result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
-                                
-                                if isinstance(result, dict) and 'progress' in result:
-                                    progress = result['progress']
-                                    total = result['total']
-                                    self.signals.tool_progress.emit(progress, total)
-                                    logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
-                                    
-                                return f"Tool execution result: {result}"
-                            except Exception as e:
-                                error_msg = f"Error executing tool: {str(e)}"
-                                logging.error(error_msg)
-                                return error_msg
-                    
-                    return f"No server found with tool: {tool_call['tool']}"
+                # Try to find all JSON tool calls in the response
+                tool_calls = []
+                current_pos = 0
+                while current_pos < len(llm_response):
+                    try:
+                        # Find opening brace
+                        start = llm_response.find('{', current_pos)
+                        if start == -1:
+                            break
+                            
+                        # Find closing brace
+                        count = 1
+                        pos = start + 1
+                        while count > 0 and pos < len(llm_response):
+                            if llm_response[pos] == '{':
+                                count += 1
+                            elif llm_response[pos] == '}':
+                                count -= 1
+                            pos += 1
+                        
+                        if count == 0:
+                            # Extract and parse JSON
+                            json_str = llm_response[start:pos]
+                            tool_call = json.loads(json_str)
+                            if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
+                                tool_calls.append(tool_call)
+                            current_pos = pos
+                        else:
+                            break
+                    except json.JSONDecodeError:
+                        current_pos += 1
+                        continue
+                
+                if tool_calls:
+                    results = []
+                    for tool_call in tool_calls:
+                        result = await self._execute_tool(tool_call)
+                        results.append(result)
+                    return "Tool execution results: " + json.dumps(results)
+                
                 return llm_response
-            except json.JSONDecodeError:
+            except Exception as e:
+                logging.error(f"Error processing LLM response: {e}")
                 return llm_response
+    
+        async def _execute_tool(self, tool_call: dict) -> str:
+            """Execute a single tool call."""
+            logging.info(f"Executing tool: {tool_call['tool']}")
+            logging.info(f"With arguments: {tool_call['arguments']}")
+            
+            for server in self.servers:
+                tools = await server.list_tools()
+                if any(tool.name == tool_call["tool"] for tool in tools):
+                    try:
+                        result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
+                        
+                        if isinstance(result, dict) and 'progress' in result:
+                            progress = result['progress']
+                            total = result['total']
+                            logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
+                            
+                        return f"Tool execution result: {result}"
+                    except Exception as e:
+                        error_msg = f"Error executing tool: {str(e)}"
+                        logging.error(error_msg)
+                        return error_msg
+            
+            return f"No server found with tool: {tool_call['tool']}"
     
         async def send_message(self, user_input: str) -> None:
             """Process a user message and get response."""
@@ -517,100 +602,6 @@ try:
                 self.messages.append({"role": "assistant", "content": llm_response})
     
     
-    class MainWindow(QMainWindow):
-        def __init__(self, chat_session):
-            super().__init__()
-            self.chat_session = chat_session
-            self.init_ui()
-            
-        def init_ui(self):
-            self.setWindowTitle("AI Chat Interface")
-            self.setMinimumSize(800, 600)
-            
-            # Main widget and layout
-            main_widget = QWidget()
-            main_layout = QVBoxLayout(main_widget)
-            
-            # Chat display area
-            self.chat_display = QTextEdit()
-            self.chat_display.setReadOnly(True)
-            main_layout.addWidget(self.chat_display)
-            
-            # Progress bar (initially hidden)
-            progress_layout = QHBoxLayout()
-            self.progress_label = QLabel("Tool execution progress:")
-            self.progress_label.setVisible(False)
-            progress_layout.addWidget(self.progress_label)
-            main_layout.addLayout(progress_layout)
-            
-            # Input area
-            input_layout = QHBoxLayout()
-            self.input_field = QLineEdit()
-            self.input_field.setPlaceholderText("Type your message here...")
-            self.input_field.returnPressed.connect(self.send_message)
-            self.send_button = QPushButton("Send")
-            self.send_button.clicked.connect(self.send_message)
-            
-            input_layout.addWidget(self.input_field)
-            input_layout.addWidget(self.send_button)
-            main_layout.addLayout(input_layout)
-            
-            self.setCentralWidget(main_widget)
-            
-            # Connect signals
-            self.chat_session.signals.update_chat.connect(self.update_chat_display)
-            self.chat_session.signals.tool_progress.connect(self.update_progress)
-            
-            # Welcome message
-            self.update_chat_display("system", "Welcome to the AI Assistant. How can I help you today?")
-        
-        @Slot(str, str)
-        def update_chat_display(self, role, content):
-            """Update the chat display with new messages."""
-            if role == "user":
-                self.chat_display.append(f"<p style='color:#0000FF'><b>You:</b> {content}</p>")
-            elif role == "assistant":
-                self.chat_display.append(f"<p style='color:#008000'><b>Assistant:</b> {content}</p>")
-            elif role == "system":
-                self.chat_display.append(f"<p style='color:#800000'><b>System:</b> {content}</p>")
-            
-            # Scroll to bottom
-            scrollbar = self.chat_display.verticalScrollBar()
-            scrollbar.setValue(scrollbar.maximum())
-        
-        @Slot(int, int)
-        def update_progress(self, progress, total):
-            """Update the progress bar."""
-            percentage = int((progress / total) * 100)
-            self.progress_label.setText(f"Tool execution progress: {progress}/{total} ({percentage}%)")
-            self.progress_label.setVisible(True)
-            
-            # Hide progress after 5 seconds
-            QTimer.singleShot(5000, lambda: self.progress_label.setVisible(False))
-        
-        def send_message(self):
-            """Send the message from the input field."""
-            user_input = self.input_field.text().strip()
-            if not user_input:
-                return
-            
-            self.input_field.clear()
-            self.input_field.setEnabled(False)
-            self.send_button.setEnabled(False)
-            
-            # Run async processing
-            asyncio.ensure_future(self.process_message(user_input))
-        
-        async def process_message(self, user_input):
-            """Process the message asynchronously."""
-            await self.chat_session.send_message(user_input)
-            
-            # Re-enable input
-            self.input_field.setEnabled(True)
-            self.send_button.setEnabled(True)
-            self.input_field.setFocus()
-    
-    
     async def run_gui_mode():
         """Run the application in GUI mode."""
         app = QApplication(sys.argv)
@@ -632,6 +623,9 @@ try:
         
         # Set up system message with tools
         chat_session.setup_system_message()
+        
+        # Import the new MainWindow from main_gui
+        from main_gui import MainWindow
         
         # Create and show the main window
         window = MainWindow(chat_session)
