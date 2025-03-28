@@ -1,6 +1,6 @@
 # AI Chat Interface Project
 
-This README guide will help you set up and run the AI Chat Interface project, which provides both terminal and GUI-based chat interfaces with tool integration capabilities.
+This README guide will help you set up and run the AI Chat Interface project, which provides a GUI-based chat interface with tool integration capabilities.
 
 ## Prerequisites
 
@@ -42,6 +42,11 @@ pip install PySide6
 ### 4. Set Up the Environment Variables
 
 Create a `.env` file in the project root directory with your API key: 
+
+```
+LLM_API_KEY="your_openai_api_key_here"
+```
+
 ### 5. Configure Servers
 
 Update the `servers_config.json` file to point to the correct directories for your system:
@@ -73,32 +78,23 @@ Update the `servers_config.json` file to point to the correct directories for yo
 
 ## Usage
 
-### Terminal Mode
+### Run the Application
 
-Run the application in terminal mode with:
+Run the application in GUI mode with:
 
 ```bash
 python main.py
 ```
 
-### GUI Mode
-
-Run the application in GUI mode with:
+If you want to run the application in terminal mode, you can use:
 
 ```bash
-python main.py --gui
-```
-
-Alternatively, you can directly run the GUI version with:
-
-```bash
-python main_gui.py
+python main.py --terminal
 ```
 
 ## Project Structure
 
-- `main.py` - The main application file with terminal and GUI mode support
-- `main_gui.py` - Dedicated file for the GUI implementation
+- `main.py` - The main application file with GUI mode support
 - `servers_config.json` - Configuration file for MCP servers
 - `.env` - Environment variables (API keys)
 
