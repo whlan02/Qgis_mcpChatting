@@ -14,6 +14,16 @@ from mcp.client.stdio import stdio_client
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Import GUI components conditionally
+try:
+    from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
+                                QTextEdit, QLineEdit, QPushButton, QWidget, QLabel,
+                                QScrollArea, QSizePolicy)
+    from PySide6.QtCore import QObject, Signal, Slot, Qt, QTimer
+    from PySide6.QtGui import QGuiApplication
+    GUI_AVAILABLE = True
+except ImportError:
+    GUI_AVAILABLE = False
 
 class Configuration:
     """Manages configuration and environment variables for the MCP client."""
@@ -284,69 +294,110 @@ class LLMClient:
             return f"I encountered an error: {error_message}. Please try again or rephrase your request."
 
 
-class ChatSession:
-    """Orchestrates the interaction between user, LLM, and tools."""
+# GUI Components
+if GUI_AVAILABLE:
+    class SignalEmitter(QObject):
+        update_chat = Signal(str, str)  # role, content
+        tool_progress = Signal(int, int)  # progress, total
 
+    class ChatBubbleWidget(QWidget):
+        def __init__(self, text, role="user", parent=None):
+            super().__init__(parent)
+            layout = QHBoxLayout(self)
+            layout.setContentsMargins(10, 5, 10, 5)
+            
+            # Create bubble text
+            self.bubble = QLabel()
+            self.bubble.setWordWrap(True)
+            self.bubble.setMinimumWidth(500)
+            self.bubble.setMaximumWidth(700)
+            self.bubble.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            
+            # Format text based on role
+            formatted_text = f'<div style="color: #2C3E50; font-size: 14px; line-height: 1.5;">{text}</div>'
+            self.bubble.setText(formatted_text)
+            self.bubble.setTextFormat(Qt.RichText)
+            
+            is_user = role == "user"
+            self.bubble.setStyleSheet(f"""
+                QLabel {{
+                    background-color: {'#DCF8C6' if is_user else '#FFFFFF'};
+                    border-radius: 10px;
+                    padding: 12px;
+                    margin: {'0 10px 0 50px' if is_user else '0 50px 0 10px'};
+                }}
+            """)
+            
+            # Add avatar
+            avatar = QLabel("👤" if is_user else "🤖")
+            avatar.setStyleSheet("""
+                QLabel {
+                    font-size: 24px;
+                    margin: 5px;
+                }
+            """)
+            
+            # Arrange layout based on role
+            if is_user:
+                layout.addStretch()
+                layout.addWidget(self.bubble)
+                layout.addWidget(avatar)
+            else:
+                layout.addWidget(avatar)
+                layout.addWidget(self.bubble)
+                layout.addStretch()
+
+    class ChatArea(QScrollArea):
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.setWidgetResizable(True)
+            self.setStyleSheet("""
+                QScrollArea {
+                    border: none;
+                    background-color: #F8F9FA;
+                }
+            """)
+            
+            self.container = QWidget()
+            self.container_layout = QVBoxLayout(self.container)
+            self.container_layout.addStretch()
+            self.setWidget(self.container)
+        
+        def add_message(self, text, role="user"):
+            self.container_layout.takeAt(self.container_layout.count() - 1)
+            bubble = ChatBubbleWidget(text, role)
+            self.container_layout.addWidget(bubble)
+            self.container_layout.addStretch()
+            self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+
+class ChatSession:
+    """Base chat session class for both terminal and GUI modes."""
     def __init__(self, servers: List[Server], llm_client: LLMClient) -> None:
-        self.servers: List[Server] = servers
-        self.llm_client: LLMClient = llm_client
+        self.servers = servers
+        self.llm_client = llm_client
         self.messages = []
         self.all_tools = []
 
     async def cleanup_servers(self) -> None:
         """Clean up all servers properly."""
+        cleanup_tasks = []
         for server in self.servers:
+            cleanup_tasks.append(asyncio.create_task(server.cleanup()))
+        
+        if cleanup_tasks:
             try:
-                await server.cleanup()
+                await asyncio.gather(*cleanup_tasks, return_exceptions=True)
             except Exception as e:
-                logging.warning(f"Warning during cleanup of server: {e}")
+                logging.warning(f"Warning during final cleanup: {e}")
 
     async def process_llm_response(self, llm_response: str) -> str:
         """Process the LLM response and execute tools if needed."""
         try:
-            # Try to find all JSON tool calls in the response
-            tool_calls = []
-            current_pos = 0
-            while current_pos < len(llm_response):
-                try:
-                    # Find opening brace
-                    start = llm_response.find('{', current_pos)
-                    if start == -1:
-                        break
-                        
-                    # Find closing brace
-                    count = 1
-                    pos = start + 1
-                    while count > 0 and pos < len(llm_response):
-                        if llm_response[pos] == '{':
-                            count += 1
-                        elif llm_response[pos] == '}':
-                            count -= 1
-                        pos += 1
-                    
-                    if count == 0:
-                        # Extract and parse JSON
-                        json_str = llm_response[start:pos]
-                        tool_call = json.loads(json_str)
-                        if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
-                            tool_calls.append(tool_call)
-                        current_pos = pos
-                    else:
-                        break
-                except json.JSONDecodeError:
-                    current_pos += 1
-                    continue
-            
-            if tool_calls:
-                results = []
-                for tool_call in tool_calls:
-                    result = await self._execute_tool(tool_call)
-                    results.append(result)
-                return "Tool execution results: " + json.dumps(results)
-            
+            tool_call = json.loads(llm_response)
+            if "tool" in tool_call and "arguments" in tool_call:
+                return await self._execute_tool(tool_call)
             return llm_response
-        except Exception as e:
-            logging.error(f"Error processing LLM response: {e}")
+        except json.JSONDecodeError:
             return llm_response
 
     async def _execute_tool(self, tool_call: dict) -> str:
@@ -359,12 +410,6 @@ class ChatSession:
             if any(tool.name == tool_call["tool"] for tool in tools):
                 try:
                     result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
-                    
-                    if isinstance(result, dict) and 'progress' in result:
-                        progress = result['progress']
-                        total = result['total']
-                        logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
-                        
                     return f"Tool execution result: {result}"
                 except Exception as e:
                     error_msg = f"Error executing tool: {str(e)}"
@@ -396,25 +441,9 @@ class ChatSession:
         system_message = f"""You are a helpful assistant with access to these tools: 
 
 {tools_description}
-Choose the appropriate tool(s) based on the user's question. If no tool is needed, reply directly.
+Choose the appropriate tool based on the user's question. If no tool is needed, reply directly.
 
-IMPORTANT: When you need to use multiple tools, you MUST combine them into a single JSON array like this:
-[
-    {{
-        "tool": "get_layers",
-        "arguments": {{}}
-    }},
-    {{
-        "tool": "remove_layer",
-        "arguments": {{
-            "layer_id": "<id_from_get_layers_result>"
-        }}
-    }}
-]
-
-DO NOT send multiple separate tool calls in the same message. Always use the array format for multiple tools.
-
-For a single tool, use this format:
+IMPORTANT: When you need to use a tool, you must ONLY respond with the exact JSON object format below, nothing else:
 {{
     "tool": "tool-name",
     "arguments": {{
@@ -422,7 +451,7 @@ For a single tool, use this format:
     }}
 }}
 
-After receiving tool responses:
+After receiving a tool's response:
 1. Transform the raw data into a natural, conversational response
 2. Keep responses concise but informative
 3. Focus on the most relevant information
@@ -442,11 +471,9 @@ Please use only the tools that are explicitly defined above."""
         """Start the chat session in terminal mode."""
         logging.info("Starting chat in terminal mode")
         try:
-            # Initialize servers
             if not await self.initialize_servers():
                 return
             
-            # Set up system message
             self.setup_system_message()
             
             print("\nWelcome to the AI Assistant. Type 'exit' or 'quit' to end the session.")
@@ -460,18 +487,15 @@ Please use only the tools that are explicitly defined above."""
 
                     self.messages.append({"role": "user", "content": user_input})
                     
-                    # Get LLM response
                     llm_response = self.llm_client.get_response(self.messages)
                     print(f"\nAssistant: {llm_response}")
 
-                    # Process potential tool calls
                     result = await self.process_llm_response(llm_response)
                     
                     if result != llm_response:
                         self.messages.append({"role": "assistant", "content": llm_response})
                         self.messages.append({"role": "system", "content": result})
                         
-                        # Get final response after tool execution
                         final_response = self.llm_client.get_response(self.messages)
                         print(f"\nFinal response: {final_response}")
                         self.messages.append({"role": "assistant", "content": final_response})
@@ -485,198 +509,216 @@ Please use only the tools that are explicitly defined above."""
         finally:
             await self.cleanup_servers()
 
-
-# GUI Components - only imported if GUI mode is used
-try:
-    from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
-                                QTextEdit, QLineEdit, QPushButton, QWidget, QLabel)
-    from PySide6.QtCore import QObject, Signal, Slot, Qt, QTimer
-    
-    class SignalEmitter(QObject):
-        update_chat = Signal(str, str)  # role, content
-        tool_progress = Signal(int, int)  # progress, total
-    
+if GUI_AVAILABLE:
     class ChatSessionGUI(ChatSession):
         """GUI version of ChatSession."""
-    
         def __init__(self, servers: List[Server], llm_client: LLMClient) -> None:
             super().__init__(servers, llm_client)
             self.signals = SignalEmitter()
-    
+
         async def process_llm_response(self, llm_response: str) -> str:
             """Process the LLM response and execute tools if needed."""
-            try:
-                # Try to find all JSON tool calls in the response
-                tool_calls = []
-                current_pos = 0
-                while current_pos < len(llm_response):
-                    try:
-                        # Find opening brace
-                        start = llm_response.find('{', current_pos)
-                        if start == -1:
-                            break
-                            
-                        # Find closing brace
-                        count = 1
-                        pos = start + 1
-                        while count > 0 and pos < len(llm_response):
-                            if llm_response[pos] == '{':
-                                count += 1
-                            elif llm_response[pos] == '}':
-                                count -= 1
-                            pos += 1
-                        
-                        if count == 0:
-                            # Extract and parse JSON
-                            json_str = llm_response[start:pos]
-                            tool_call = json.loads(json_str)
-                            if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
-                                tool_calls.append(tool_call)
-                            current_pos = pos
-                        else:
-                            break
-                    except json.JSONDecodeError:
-                        current_pos += 1
-                        continue
-                
-                if tool_calls:
-                    results = []
-                    for tool_call in tool_calls:
-                        result = await self._execute_tool(tool_call)
-                        results.append(result)
-                    return "Tool execution results: " + json.dumps(results)
-                
-                return llm_response
-            except Exception as e:
-                logging.error(f"Error processing LLM response: {e}")
-                return llm_response
-    
-        async def _execute_tool(self, tool_call: dict) -> str:
-            """Execute a single tool call."""
-            logging.info(f"Executing tool: {tool_call['tool']}")
-            logging.info(f"With arguments: {tool_call['arguments']}")
-            
-            for server in self.servers:
-                tools = await server.list_tools()
-                if any(tool.name == tool_call["tool"] for tool in tools):
-                    try:
-                        result = await server.execute_tool(tool_call["tool"], tool_call["arguments"])
-                        
-                        if isinstance(result, dict) and 'progress' in result:
-                            progress = result['progress']
-                            total = result['total']
-                            logging.info(f"Progress: {progress}/{total} ({(progress/total)*100:.1f}%)")
-                            
-                        return f"Tool execution result: {result}"
-                    except Exception as e:
-                        error_msg = f"Error executing tool: {str(e)}"
-                        logging.error(error_msg)
-                        return error_msg
-            
-            return f"No server found with tool: {tool_call['tool']}"
-    
+            result = await super().process_llm_response(llm_response)
+            if result != llm_response:
+                self.signals.update_chat.emit("system", f"Tool execution: {result}")
+            return result
+
         async def send_message(self, user_input: str) -> None:
             """Process a user message and get response."""
-            # Add user message to history
             self.messages.append({"role": "user", "content": user_input})
             self.signals.update_chat.emit("user", user_input)
             
-            # Get LLM response
             llm_response = self.llm_client.get_response(self.messages)
             self.signals.update_chat.emit("assistant", llm_response)
-            logging.info("\nAssistant: %s", llm_response)
-    
-            # Process potential tool calls
+            
             result = await self.process_llm_response(llm_response)
             
             if result != llm_response:
                 self.messages.append({"role": "assistant", "content": llm_response})
                 self.messages.append({"role": "system", "content": result})
                 
-                # Get final response after tool execution
                 final_response = self.llm_client.get_response(self.messages)
                 self.signals.update_chat.emit("assistant", final_response)
-                logging.info("\nFinal response: %s", final_response)
                 self.messages.append({"role": "assistant", "content": final_response})
             else:
                 self.messages.append({"role": "assistant", "content": llm_response})
-    
-    
-    async def run_gui_mode():
-        """Run the application in GUI mode."""
-        app = QApplication(sys.argv)
+
+    class MainWindow(QMainWindow):
+        def __init__(self, chat_session):
+            super().__init__()
+            self.chat_session = chat_session
+            self.init_ui()
+            
+        def init_ui(self):
+            self.setWindowTitle("AI Chat Interface")
+            screen = QGuiApplication.primaryScreen().availableGeometry()
+            self.resize(int(screen.width() * 0.6), int(screen.height() * 0.6))
+            
+            main_widget = QWidget()
+            main_layout = QVBoxLayout(main_widget)
+            main_layout.setSpacing(10)
+            main_layout.setContentsMargins(20, 20, 20, 20)
+            
+            self.chat_area = ChatArea()
+            main_layout.addWidget(self.chat_area, stretch=1)
+            
+            progress_layout = QHBoxLayout()
+            self.progress_label = QLabel("Tool execution progress:")
+            self.progress_label.setVisible(False)
+            progress_layout.addWidget(self.progress_label)
+            main_layout.addLayout(progress_layout)
+            
+            input_container = QWidget()
+            input_container.setFixedHeight(100)
+            input_container.setStyleSheet("""
+                QWidget {
+                    background-color: white;
+                    border: 1px solid #E8E8E8;
+                    border-radius: 10px;
+                }
+            """)
+            
+            input_layout = QHBoxLayout(input_container)
+            input_layout.setContentsMargins(10, 5, 10, 5)
+            
+            self.input_field = QTextEdit()
+            self.input_field.setPlaceholderText("Type your message here...")
+            self.input_field.setStyleSheet("""
+                QTextEdit {
+                    border: none;
+                    padding: 5px;
+                    font-size: 14px;
+                    background-color: white;
+                }
+            """)
+            self.input_field.installEventFilter(self)
+            
+            self.send_button = QPushButton("Send")
+            self.send_button.setFixedWidth(80)
+            self.send_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #87CEEB;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    padding: 8px 20px;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #5CACEE;
+                }
+            """)
+            self.send_button.clicked.connect(self.send_message)
+            
+            input_layout.addWidget(self.input_field)
+            input_layout.addWidget(self.send_button)
+            main_layout.addWidget(input_container)
+            
+            self.setCentralWidget(main_widget)
+            
+            self.chat_session.signals.update_chat.connect(self.update_chat_display)
+            self.chat_session.signals.tool_progress.connect(self.update_progress)
+            
+            self.update_chat_display("system", "Welcome to the AI Assistant. How can I help you today?")
         
-        # Initialize configuration and servers
+        def eventFilter(self, obj, event):
+            if obj is self.input_field and event.type() == 6:  # KeyPress event
+                if event.key() == Qt.Key_Return and not event.modifiers():
+                    self.send_message()
+                    return True
+                elif event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier:
+                    cursor = self.input_field.textCursor()
+                    cursor.insertText('\n')
+                    return True
+            return super().eventFilter(obj, event)
+        
+        @Slot(str, str)
+        def update_chat_display(self, role, content):
+            """Update the chat display with new messages."""
+            self.chat_area.add_message(content, role)
+        
+        @Slot(int, int)
+        def update_progress(self, progress, total):
+            """Update the progress bar."""
+            percentage = int((progress / total) * 100)
+            self.progress_label.setText(f"Tool execution progress: {progress}/{total} ({percentage}%)")
+            self.progress_label.setVisible(True)
+            QTimer.singleShot(5000, lambda: self.progress_label.setVisible(False))
+        
+        def send_message(self):
+            """Send the message from the input field."""
+            user_input = self.input_field.toPlainText().strip()
+            if not user_input:
+                return
+            
+            self.input_field.clear()
+            self.input_field.setEnabled(False)
+            self.send_button.setEnabled(False)
+            
+            asyncio.ensure_future(self.process_message(user_input))
+        
+        async def process_message(self, user_input):
+            """Process the message asynchronously."""
+            await self.chat_session.send_message(user_input)
+            self.input_field.setEnabled(True)
+            self.send_button.setEnabled(True)
+            self.input_field.setFocus()
+
+async def run_gui_mode():
+    """Run the application in GUI mode."""
+    app = QApplication(sys.argv)
+    
+    config = Configuration()
+    server_config = config.load_config('servers_config.json')
+    servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
+    llm_client = LLMClient(config.llm_api_key)
+    
+    chat_session = ChatSessionGUI(servers, llm_client)
+    
+    if not await chat_session.initialize_servers():
+        logging.error("Failed to initialize application. Exiting.")
+        return
+    
+    chat_session.setup_system_message()
+    
+    window = MainWindow(chat_session)
+    window.show()
+    
+    app.aboutToQuit.connect(lambda: asyncio.ensure_future(chat_session.cleanup_servers()))
+    
+    app.chat_session = chat_session
+    
+    while True:
+        app.processEvents()
+        await asyncio.sleep(0.01)
+        if not window.isVisible():
+            break
+    
+    await chat_session.cleanup_servers()
+
+async def main() -> None:
+    """Initialize and run the chat session in GUI mode by default."""
+    import argparse
+    parser = argparse.ArgumentParser(description='AI Chat Application')
+    parser.add_argument('--terminal', action='store_true', help='Run in terminal mode')
+    args = parser.parse_args()
+    
+    if args.terminal:
+        logging.info("Starting terminal mode")
         config = Configuration()
         server_config = config.load_config('servers_config.json')
         servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
         llm_client = LLMClient(config.llm_api_key)
-        
-        # Create chat session
-        chat_session = ChatSessionGUI(servers, llm_client)
-        
-        # Initialize servers
-        servers_initialized = await chat_session.initialize_servers()
-        if not servers_initialized:
-            logging.error("Failed to initialize application. Exiting.")
-            return
-        
-        # Set up system message with tools
-        chat_session.setup_system_message()
-        
-        # Import the new MainWindow from main_gui
-        from main_gui import MainWindow
-        
-        # Create and show the main window
-        window = MainWindow(chat_session)
-        window.show()
-        
-        # Set up cleanup on exit
-        app.aboutToQuit.connect(lambda: asyncio.ensure_future(chat_session.cleanup_servers()))
-        
-        # Keep reference to prevent garbage collection
-        app.chat_session = chat_session
-        
-        # Run the event loop manually to work with asyncio
-        while True:
-            app.processEvents()
-            await asyncio.sleep(0.01)
-            if not window.isVisible():
-                break
-        
-        # Cleanup
-        await chat_session.cleanup_servers()
-
-except ImportError:
-    # PySide6 not available
-    pass
-
-
-async def main() -> None:
-    """Initialize and run the chat session in the appropriate mode."""
-    import argparse
-    parser = argparse.ArgumentParser(description='AI Chat Application')
-    parser.add_argument('--gui', action='store_true', help='Run in GUI mode (requires PySide6)')
-    args = parser.parse_args()
-    
-    if args.gui:
-        try:
-            # Check if PySide6 is available
-            from PySide6.QtWidgets import QApplication
-            logging.info("Starting GUI mode")
-            await run_gui_mode()
-        except ImportError:
-            logging.error("PySide6 is not installed. Please install it with 'pip install pyside6' to use GUI mode.")
-            logging.info("Falling back to terminal mode")
-            # Fall back to terminal mode
-            config = Configuration()
-            server_config = config.load_config('servers_config.json')
-            servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
-            llm_client = LLMClient(config.llm_api_key)
-            chat_session = ChatSession(servers, llm_client)
-            await chat_session.start_terminal()
+        chat_session = ChatSession(servers, llm_client)
+        await chat_session.start_terminal()
+    elif GUI_AVAILABLE:
+        logging.info("Starting GUI mode")
+        await run_gui_mode()
     else:
-        # Terminal mode
+        logging.error("PySide6 is not installed. Please install it with 'pip install pyside6' to use GUI mode.")
+        logging.info("Falling back to terminal mode")
+        
         config = Configuration()
         server_config = config.load_config('servers_config.json')
         servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
