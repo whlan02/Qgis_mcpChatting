@@ -6,10 +6,12 @@ import shutil
 import sys
 from typing import Dict, List, Optional, Any
 
-import requests
 from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from settings_dialog import SettingsDialog
+from openai import OpenAI
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,10 +31,9 @@ class Configuration:
     """Manages configuration and environment variables for the MCP client."""
 
     def __init__(self) -> None:
-        """Initialize configuration with environment variables."""
-        self.load_env()
-        self.api_key = os.getenv("LLM_API_KEY")
-        # self.api_key = os.getenv("GITHUB_API_KEY")
+        """Initialize configuration."""
+        # Remove environment variable loading
+        self.api_key = None  # Will be set through settings dialog
 
     @staticmethod
     def load_env() -> None:
@@ -64,10 +65,10 @@ class Configuration:
             The API key as a string.
             
         Raises:
-            ValueError: If the API key is not found in environment variables.
+            ValueError: If the API key is not set in settings.
         """
         if not self.api_key:
-            raise ValueError("LLM_API_KEY not found in environment variables")
+            raise ValueError("Please set API key in settings")
         return self.api_key
 
 
@@ -244,54 +245,144 @@ Arguments:
 
 
 class LLMClient:
-    """Manages communication with the LLM provider."""
+    """Manages communication with various LLM providers."""
 
-    def __init__(self, api_key: str) -> None:
-        self.api_key: str = api_key
+    def __init__(self) -> None:
+        # 初始化时不再要求API key
+        self.api_key: str = None
+        self.provider: str = "OpenAI"
+        self.model: str = "gpt-4o-mini"
+        self._openai_client = None
+        self._anthropic_client = None
+        self._google_client = None
+
+    def update_settings(self, provider: str, model: str, api_key: str) -> None:
+        """Update client settings."""
+        self.provider = provider
+        self.model = model
+        self.api_key = api_key
+        # Reset all clients when settings change
+        self._openai_client = None
+        self._anthropic_client = None
+        self._google_client = None
 
     def get_response(self, messages: List[Dict[str, str]]) -> str:
-        """Get a response from the LLM.
-        
-        Args:
-            messages: A list of message dictionaries.
-            
-        Returns:
-            The LLM's response as a string.
-            
-        Raises:
-            RequestException: If the request to the LLM fails.
-        """
-        url = "https://api.openai.com/v1/chat/completions"
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
-        payload = {
-            "messages": messages,
-            "model": "gpt-4o-mini",
-            "temperature": 0.7,
-            "max_tokens": 4096,
-            "top_p": 1,
-            "stream": False
-        }
+        """Get a response from the selected LLM provider."""
+        if not self.api_key:
+            return "Please set your API key in settings first."
         
         try:
-            response = requests.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
-            return data['choices'][0]['message']['content']
+            if self.provider == "OpenAI":
+                return self._get_openai_response(messages)
+            elif self.provider == "Anthropic":
+                return self._get_anthropic_response(messages)
+            elif self.provider == "Google":
+                return self._get_google_response(messages)
+            elif self.provider == "Deepseek":
+                return self._get_deepseek_response(messages)
+            else:
+                error_msg = f"Unsupported provider: {self.provider}"
+                logging.error(error_msg)
+                return error_msg
+        except Exception as e:
+            error_msg = f"Error getting response from {self.provider}: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _get_openai_response(self, messages: List[Dict[str, str]]) -> str:
+        """Get response using OpenAI's official client."""
+        try:
+            client = self._get_openai_client()
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=4096,
+                top_p=1
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            error_msg = f"OpenAI API error: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _get_anthropic_response(self, messages: List[Dict[str, str]]) -> str:
+        """Get response using Anthropic's official client."""
+        try:
+            client = self._get_anthropic_client()
+            # Filter out system messages as they're handled differently in Anthropic
+            chat_messages = [msg for msg in messages if msg["role"] != "system"]
             
-        except requests.exceptions.RequestException as e:
-            error_message = f"Error getting LLM response: {str(e)}"
-            logging.error(error_message)
+            response = client.messages.create(
+                model=self.model,
+                max_tokens=4096,
+                messages=chat_messages
+            )
+            return response.content
+        except Exception as e:
+            error_msg = f"Anthropic API error: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _get_google_response(self, messages: List[Dict[str, str]]) -> str:
+        """Get response using Google's official client."""
+        try:
+            client = self._get_google_client()
             
-            if e.response is not None:
-                status_code = e.response.status_code
-                logging.error(f"Status code: {status_code}")
-                logging.error(f"Response details: {e.response.text}")
-                
-            return f"I encountered an error: {error_message}. Please try again or rephrase your request."
+            # Combine all messages into a single conversation string
+            conversation = "\n".join([
+                f"{msg['role']}: {msg['content']}" 
+                for msg in messages 
+                if msg['role'] != 'system'
+            ])
+            
+            response = client.models.generate_content(
+                model=self.model,
+                contents=conversation
+            )
+            return response.text
+        except Exception as e:
+            error_msg = f"Google API error: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _get_deepseek_response(self, messages: List[Dict[str, str]]) -> str:
+        """Get response from Deepseek using OpenAI SDK."""
+        try:
+            client = self._get_openai_client(base_url="https://api.deepseek.com")
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                stream=False
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            error_msg = f"Deepseek API error: {str(e)}"
+            logging.error(error_msg)
+            return error_msg
+
+    def _get_openai_client(self, base_url=None):
+        """Get or create OpenAI client with current settings."""
+        if self._openai_client is None:
+            kwargs = {"api_key": self.api_key}
+            if base_url:
+                kwargs["base_url"] = base_url
+            self._openai_client = OpenAI(**kwargs)
+        return self._openai_client
+
+    def _get_anthropic_client(self):
+        """Get or create Anthropic client with current settings."""
+        if self._anthropic_client is None:
+            import anthropic
+            self._anthropic_client = anthropic.Anthropic(api_key=self.api_key)
+        return self._anthropic_client
+
+    def _get_google_client(self):
+        """Get or create Google client with current settings."""
+        if self._google_client is None:
+            from google import genai
+            self._google_client = genai.Client(api_key=self.api_key)
+        return self._google_client
 
 
 # GUI Components
@@ -392,13 +483,16 @@ class ChatSession:
 
     async def process_llm_response(self, llm_response: str) -> str:
         """Process the LLM response and execute tools if needed."""
+        if not llm_response:
+            return "Sorry, I received no response from the language model. Please try again."
+        
         try:
             tool_call = json.loads(llm_response)
-            if "tool" in tool_call and "arguments" in tool_call:
+            if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
                 return await self._execute_tool(tool_call)
             return llm_response
         except json.JSONDecodeError:
-            return llm_response
+            return llm_response  # Not a JSON response, return as is
 
     async def _execute_tool(self, tool_call: dict) -> str:
         """Execute a single tool call."""
@@ -581,6 +675,22 @@ if GUI_AVAILABLE:
             input_layout = QHBoxLayout(input_container)
             input_layout.setContentsMargins(10, 5, 10, 5)
             
+            # Add settings button
+            self.settings_button = QPushButton("⚙️")
+            self.settings_button.setFixedWidth(40)
+            self.settings_button.setStyleSheet("""
+                QPushButton {
+                    background-color: transparent;
+                    border: none;
+                    font-size: 20px;
+                }
+                QPushButton:hover {
+                    background-color: #E8E8E8;
+                    border-radius: 5px;
+                }
+            """)
+            self.settings_button.clicked.connect(self.show_settings)
+            
             self.input_field = QTextEdit()
             self.input_field.setPlaceholderText("Type your message here...")
             self.input_field.setStyleSheet("""
@@ -611,6 +721,7 @@ if GUI_AVAILABLE:
             """)
             self.send_button.clicked.connect(self.send_message)
             
+            input_layout.addWidget(self.settings_button)
             input_layout.addWidget(self.input_field)
             input_layout.addWidget(self.send_button)
             main_layout.addWidget(input_container)
@@ -665,6 +776,17 @@ if GUI_AVAILABLE:
             self.send_button.setEnabled(True)
             self.input_field.setFocus()
 
+        def show_settings(self):
+            dialog = SettingsDialog(self)
+            if dialog.exec_():
+                settings = dialog.get_settings()
+                # Update the LLM client with new settings
+                self.chat_session.llm_client.update_settings(
+                    provider=settings["provider"],
+                    model=settings["model"],
+                    api_key=settings["api_key"]
+                )
+
 async def run_gui_mode():
     """Run the application in GUI mode."""
     app = QApplication(sys.argv)
@@ -672,7 +794,8 @@ async def run_gui_mode():
     config = Configuration()
     server_config = config.load_config('servers_config.json')
     servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
-    llm_client = LLMClient(config.llm_api_key)
+    # 创建LLMClient时不传入api_key
+    llm_client = LLMClient()
     
     chat_session = ChatSessionGUI(servers, llm_client)
     
@@ -709,7 +832,7 @@ async def main() -> None:
         config = Configuration()
         server_config = config.load_config('servers_config.json')
         servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
-        llm_client = LLMClient(config.llm_api_key)
+        llm_client = LLMClient()
         chat_session = ChatSession(servers, llm_client)
         await chat_session.start_terminal()
     elif GUI_AVAILABLE:
@@ -722,7 +845,7 @@ async def main() -> None:
         config = Configuration()
         server_config = config.load_config('servers_config.json')
         servers = [Server(name, srv_config) for name, srv_config in server_config['mcpServers'].items()]
-        llm_client = LLMClient(config.llm_api_key)
+        llm_client = LLMClient()
         chat_session = ChatSession(servers, llm_client)
         await chat_session.start_terminal()
 

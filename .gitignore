@@ -29,6 +29,7 @@ ENV/
 .env
 .venv
 
+
 # IDE
 .idea/
 .vscode/
@@ -40,3 +41,6 @@ ENV/
 *.db
 *.sqlite3
 *.log
+
+# Server config
+servers_config.json

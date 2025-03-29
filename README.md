@@ -1,56 +1,81 @@
-# AI Chat Interface Project
+# mcpchatting
 
-This README guide will help you set up and run the AI Chat Interface project, which provides a GUI-based chat interface with tool integration capabilities.
+A short, two days Hackathon #ifgiHACK25 project. [(Presentation Video)](https://www.youtube.com/watch?v=JkR3NgwAmRc)
+
+mcpchatting is based on the following projects:
+- [QGIS MCP](https://github.com/jjsantos01/qgis_mcp)
+- [MCP Chatbot](https://github.com/3choff/mcp-chatbot)
+
+
+The mcpchatting system has been enhanced with expanded language model support and a built-in chat interface. This integrated solution removes dependency on external chat platforms, providing users with unrestricted access(using their own API keys) without the constraints typically associated with free-plan services like Claude.
+
+
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or newer
 - pip (Python package installer)
 - Node.js and npm (for NPX commands)
 - uv (Python package installer and environment manager) for the QGIS server
 
 ## Installation
 
-### 1. Clone the Repository
-
+### 1. Start Generation Here
+If you're on Mac, please install uv as
 ```bash
-git clone https://github.com/yourusername/ai-chat-interface.git
-cd ai-chat-interface
+brew install uv
 ```
 
-### 2. Set Up a Virtual Environment (Recommended)
+On Windows Powershell:
+```bash
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+Otherwise installation instructions are on their website:[Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+### 2. Qgis MCP Plugin
+You need to copy the folder [qgis_mcp_plugin](/qgis_mcp_plugin/) and its content on your QGIS profile plugins folder.
+
+You can get your profile folder in QGIS going to menu `Settings` -> `User profiles` -> `Open active profile folder` Then, go to `Python/plugins` and paste the folder `qgis_mcp_plugin`.
+
+> On a Windows machine the plugins folder is usually located at:`C:\Users\USER\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins`
+
+> and on MacOS:
+`~/Library/Application\ Support/QGIS/QGIS3/profiles/default/python/plugins` 
+
+ Then close QGIS and open it again. Go to the menu option `Plugins` -> `Installing and Managing Plugins`, select the `All` tab and search for "QGIS MCP", then mark the QGIS MCP checkbox.
+
+
+### 3. Clone the Repository
+
+```bash
+git clone https://github.com/whlan02/mcpchatting
+cd mcpchatting
+```
+
+### 4. Set Up a Virtual Environment (Recommended)
 
 ```bash
 python -m venv venv
 
 # Activate the virtual environment
+
 # On Windows:
 venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
 ```
 
-### 3. Install Required Python Packages
+### 5. Install Required Python Packages
 
 ```bash
-pip install requests python-dotenv mcp
-
-# For GUI mode:
-pip install PySide6
+pip install -r requirements.txt
 ```
 
-### 4. Set Up the Environment Variables
 
-Create a `.env` file in the project root directory with your API key: 
 
-```
-LLM_API_KEY="your_openai_api_key_here"
-```
+### 6. Configure Servers
 
-### 5. Configure Servers
-
-Update the `servers_config.json` file to point to the correct directories for your system:
-
+Update the `servers_config_Example.json` file to point to the correct directories for your system:
 ```json
 {
   "mcpServers": {
@@ -59,15 +84,14 @@ Update the `servers_config.json` file to point to the correct directories for yo
           "args": [
               "-y",
               "@modelcontextprotocol/server-filesystem",
-              "/path/to/your/Desktop",
-              "/path/to/your/Downloads"
+              "/ABSOLUTE/PATH/TO/YOUR/WORKING/DIRECTORY" 
           ]
       },
       "qgis": {
           "command": "uv",
           "args": [
               "--directory",
-              "/path/to/qgis_mcp/src/qgis_mcp",
+              "/ABSOLUTE/PATH/TO/PARENT/REPO/FOLDER/qgis_mcp",
               "run",
               "qgis_mcp_server.py"
           ]
@@ -75,73 +99,28 @@ Update the `servers_config.json` file to point to the correct directories for yo
   }
 }
 ```
+After you have configured the `servers_config_Example.json` file, you should rename it to `servers_config.json`. Otherwise, the QGIS MCP Server will not start.
+
 
 ## Usage
 
-### Run the Application
+### 1. Start the QGIS MCP Server
+1. In QGIS, go to `plugins` -> `QGIS MCP`-> `QGIS MCP`
+    ![plugins menu](/images/Screenshot1.png)
+2. Click "Start Server"
+    ![start server](/images/Screenshot2.png)
 
-Run the application in GUI mode with:
+
+### 2. Start the QGIS MCP Client
+
+In the root folder of the project, run:
 
 ```bash
 python main.py
 ```
+### 3. Choose LLM Model and set API Key
 
-If you want to run the application in terminal mode, you can use:
+![Settings](/images/Screenshot3.png)
 
-```bash
-python main.py --terminal
-```
 
-## Project Structure
-
-- `main.py` - The main application file with GUI mode support
-- `servers_config.json` - Configuration file for MCP servers
-- `.env` - Environment variables (API keys)
-
-## Features
-
-- Chat with an AI assistant powered by OpenAI's models
-- Execute tools through Model Context Protocol (MCP) servers
-- File system operations via the filesystem MCP server
-- QGIS integration via the QGIS MCP server
-- Progress tracking for tool execution
-- Intuitive GUI interface with PySide6 (Qt)
-
-## Troubleshooting
-
-### Common Issues
-
-1. **ModuleNotFoundError**: Make sure all required packages are installed
-   ```bash
-   pip install requests python-dotenv mcp PySide6
-   ```
-
-2. **API Key Error**: Ensure your `.env` file contains the correct API key
-   ```
-   LLM_API_KEY="your_openai_api_key_here"
-   ```
-
-3. **Server Configuration Errors**: Check that the paths in `servers_config.json` are correct for your system
-
-4. **GUI Mode Not Working**: Make sure PySide6 is installed
-   ```bash
-   pip install PySide6
-   ```
-
-## Additional Setup for QGIS Server
-
-If you're using the QGIS MCP server:
-
-1. Install `uv` if not already installed:
-   ```bash
-   pip install uv
-   ```
-
-2. Set up the QGIS MCP repository:
-   ```bash
-   git clone https://github.com/path/to/qgis_mcp.git
-   cd qgis_mcp
-   pip install -e .
-   ```
-
-3. Update the path in `servers_config.json` to point to your QGIS MCP installation.
+Only OpenAI and Deepseek are tested so far.
