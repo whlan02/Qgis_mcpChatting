@@ -13,6 +13,11 @@ from settings_dialog import SettingsDialog
 from openai import OpenAI
 
 
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -31,9 +36,16 @@ class Configuration:
     """Manages configuration and environment variables for the MCP client."""
 
     def __init__(self) -> None:
+<<<<<<< HEAD
         """Initialize configuration."""
         # Remove environment variable loading
         self.api_key = None  # Will be set through settings dialog
+=======
+        """Initialize configuration with environment variables."""
+        self.load_env()
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        # self.api_key = os.getenv("GITHUB_API_KEY")
+>>>>>>> da59dd3 (latest changes)
 
     @staticmethod
     def load_env() -> None:
@@ -246,7 +258,6 @@ Arguments:
 
 class LLMClient:
     """Manages communication with various LLM providers."""
-
     def __init__(self) -> None:
         # 初始化时不再要求API key
         self.api_key: str = None
