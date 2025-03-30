@@ -36,16 +36,9 @@ class Configuration:
     """Manages configuration and environment variables for the MCP client."""
 
     def __init__(self) -> None:
-<<<<<<< HEAD
         """Initialize configuration."""
         # Remove environment variable loading
         self.api_key = None  # Will be set through settings dialog
-=======
-        """Initialize configuration with environment variables."""
-        self.load_env()
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        # self.api_key = os.getenv("GITHUB_API_KEY")
->>>>>>> da59dd3 (latest changes)
 
     @staticmethod
     def load_env() -> None:
