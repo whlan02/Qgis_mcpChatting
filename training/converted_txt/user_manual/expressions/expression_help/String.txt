@@ -1,0 +1,900 @@
+
+
+
+
+
+orphan:
+
+
+
+
+ascii
+Returns the unicode code associated with the first character of a string.
+
+
+
+
+
+
+Syntax
+ascii(string)
+
+Arguments
+
+string - the string to convert to unicode code
+
+
+
+Examples
+
+ascii('Q') → 81
+
+
+
+
+
+
+
+char
+Returns the character associated with a unicode code.
+
+
+
+
+
+
+Syntax
+char(code)
+
+Arguments
+
+code - a unicode code number
+
+
+
+Examples
+
+char(81) → 'Q'
+
+
+
+
+
+
+
+concat
+Concatenates several strings to one. NULL values are converted to empty strings. Other values (like numbers) are converted to strings.
+
+
+
+
+
+
+Syntax
+concat(string1, string2, ...)
+
+Arguments
+
+string - a string value
+
+
+
+Examples
+
+concat('sun', 'set') → 'sunset'
+concat('a','b','c','d','e') → 'abcde'
+concat('Anno ', 1984) → 'Anno 1984'
+concat('The Wall', NULL) → 'The Wall'
+
+
+
+
+
+
+
+format
+Format a string using supplied arguments.
+
+
+
+
+
+
+Syntax
+format(string, arg1, arg2, ...)
+
+Arguments
+
+string - A string with placeholders %1, %2, etc., for the arguments. Placeholders can be repeated. The lowest numbered placeholder is replaced by arg1, the next by arg2, etc.
+arg - any type. Any number of arguments.
+
+
+
+Examples
+
+format('This %1 a %2','is', 'test') → 'This is a test'
+format('This is %2','a bit unexpected but 2 is lowest number in string','normal') → 'This is a bit unexpected but 2 is lowest number in string'
+
+
+
+
+
+
+
+format_date
+Formats a date type or string into a custom string format. Uses Qt date/time format strings. See QDateTime::toString.
+
+
+
+
+
+
+Syntax
+format_date(datetime, format, [language])
+[] marks optional arguments
+
+
+Arguments
+
+datetime - date, time or datetime value
+
+format - String template used to format the string.
+
+
+
+
+
+
+Expression
+Output
+
+
+
+d
+the day as number without a leading zero (1 to 31)
+
+dd
+the day as number with a leading zero (01 to 31)
+
+ddd
+the abbreviated localized day name (e.g. 'Mon' to 'Sun')
+
+dddd
+the long localized day name (e.g. 'Monday' to 'Sunday')
+
+M
+the month as number without a leading zero (1-12)
+
+MM
+the month as number with a leading zero (01-12)
+
+MMM
+the abbreviated localized month name (e.g. 'Jan' to 'Dec')
+
+MMMM
+the long localized month name (e.g. 'January' to 'December')
+
+yy
+the year as two digit number (00-99)
+
+yyyy
+the year as four digit number
+
+
+
+These expressions may be used for the time part of the format string:
+
+
+
+
+
+
+Expression
+Output
+
+
+
+h
+the hour without a leading zero (0 to 23 or 1 to 12 if AM/PM display)
+
+hh
+the hour with a leading zero (00 to 23 or 01 to 12 if AM/PM display)
+
+H
+the hour without a leading zero (0 to 23, even with AM/PM display)
+
+HH
+the hour with a leading zero (00 to 23, even with AM/PM display)
+
+m
+the minute without a leading zero (0 to 59)
+
+mm
+the minute with a leading zero (00 to 59)
+
+s
+the second without a leading zero (0 to 59)
+
+ss
+the second with a leading zero (00 to 59)
+
+z
+the milliseconds without trailing zeroes (0 to 999)
+
+zzz
+the milliseconds with trailing zeroes (000 to 999)
+
+AP or A
+interpret as an AM/PM time. AP must be either 'AM' or 'PM'.
+
+ap or a
+Interpret as an AM/PM time. ap must be either 'am' or 'pm'.
+
+
+
+
+language - language (lowercase, two- or three-letter, ISO 639 language code) used to format the date into a custom string. By default the current QGIS user locale is used.
+
+
+
+
+Examples
+
+format_date('2012-05-15','dd.MM.yyyy') → '15.05.2012'
+format_date('2012-05-15','d MMMM yyyy','fr') → '15 mai 2012'
+format_date('2012-05-15','dddd') → 'Tuesday', if the current locale is an English variant
+format_date('2012-05-15 13:54:20','dd.MM.yy') → '15.05.12'
+format_date('13:54:20','hh:mm AP') → '01:54 PM'
+
+
+
+
+
+
+
+format_number
+Returns a number formatted with the locale separator for thousands. By default the current QGIS user locale is used. Also truncates the decimal places to the number of supplied places.
+
+
+
+
+
+
+Syntax
+format_number(number, [places=0], [language], [omit_group_separators=false], [trim_trailing_zeroes=false])
+[] marks optional arguments
+
+
+Arguments
+
+number - number to be formatted
+places - integer representing the number of decimal places to truncate the string to.
+language - language (lowercase, two- or three-letter, ISO 639 language code) used to format the number into a string. By default the current QGIS user locale is used.
+omit_group_separators - if set to true then group separators will not be included in the string
+trim_trailing_zeroes - if set to true then trailing zeros following the decimal point will be trimmed from the string
+
+
+
+Examples
+
+format_number(10000000.332,2) → '10,000,000.33' if e.g. the current locale is an English variant
+format_number(10000000.332,2,'fr') → '10 000 000,33'
+
+
+
+
+
+
+
+left
+Returns a substring that contains the n leftmost characters of the string.
+
+
+
+
+
+
+Syntax
+left(string, length)
+
+Arguments
+
+string - a string
+length - integer. The number of characters from the left of the string to return.
+
+
+
+Examples
+
+left('Hello World',5) → 'Hello'
+
+
+
+
+
+
+
+length
+Returns the number of characters in a string or the length of a geometry linestring.
+String variant
+Returns the number of characters in a string.
+
+
+
+
+
+
+Syntax
+length(string)
+
+Arguments
+
+string - string to count length of
+
+
+
+Examples
+
+length('hello') → 5
+
+
+
+
+
+Geometry variant
+Calculate the length of a geometry line object. Calculations are always planimetric in the Spatial Reference System (SRS) of this geometry, and the units of the returned length will match the units for the SRS. This differs from the calculations performed by the $length function, which will perform ellipsoidal calculations based on the project's ellipsoid and distance unit settings.
+
+
+
+
+
+
+Syntax
+length(geometry)
+
+Arguments
+
+geometry - line geometry object
+
+
+
+Examples
+
+length(geom_from_wkt('LINESTRING(0 0, 4 0)')) → 4.0
+
+
+
+
+
+
+
+lower
+Converts a string to lower case letters.
+
+
+
+
+
+
+Syntax
+lower(string)
+
+Arguments
+
+string - the string to convert to lower case
+
+
+
+Examples
+
+lower('HELLO World') → 'hello world'
+
+
+
+
+
+
+
+lpad
+Returns a string padded on the left to the specified width, using a fill character. If the target width is smaller than the string's length, the string is truncated.
+
+
+
+
+
+
+Syntax
+lpad(string, width, fill)
+
+Arguments
+
+string - string to pad
+width - length of new string
+fill - character to pad the remaining space with
+
+
+
+Examples
+
+lpad('Hello', 10, 'x') → 'xxxxxHello'
+lpad('Hello', 3, 'x') → 'Hel'
+
+
+
+
+
+
+
+ltrim
+Removes the longest string containing only the specified characters (a space by default) from the start of string.
+
+
+
+
+
+
+Syntax
+ltrim(string, [characters=' '])
+[] marks optional arguments
+
+
+Arguments
+
+string - string to trim
+characters - characters to trim
+
+
+
+Examples
+
+ltrim('   hello world  ') → 'hello world  '
+ltrim('zzzytest', 'xyz') → 'test'
+
+
+
+
+
+
+
+regexp_match
+Return the first matching position matching a regular expression within an unicode string, or 0 if the substring is not found.
+
+
+
+
+
+
+Syntax
+regexp_match(input_string, regex)
+
+Arguments
+
+input_string - the string to test against the regular expression
+regex - The regular expression to test against. Backslash characters must be double escaped (e.g., "\\s" to match a white space character or  "\\b" to match a word boundary).
+
+
+
+Examples
+
+regexp_match('QGIS ROCKS','\\sROCKS') → 5
+regexp_match('Budač','udač\\b') → 2
+
+
+
+
+
+
+
+regexp_replace
+Returns a string with the supplied regular expression replaced.
+
+
+
+
+
+
+Syntax
+regexp_replace(input_string, regex, replacement)
+
+Arguments
+
+input_string - the string to replace matches in
+regex - The regular expression to replace. Backslash characters must be double escaped (e.g., "\\s" to match a white space character).
+replacement - The string that will replace any matching occurrences of the supplied regular expression. Captured groups can be inserted into the replacement string using \\1, \\2, etc.
+
+
+
+Examples
+
+regexp_replace('QGIS SHOULD ROCK','\\sSHOULD\\s',' DOES ') → 'QGIS DOES ROCK'
+regexp_replace('ABC123','\\d+','') → 'ABC'
+regexp_replace('my name is John','(.*) is (.*)','\\2 is \\1') → 'John is my name'
+
+
+
+
+
+
+
+regexp_substr
+Returns the portion of a string which matches a supplied regular expression.
+
+
+
+
+
+
+Syntax
+regexp_substr(input_string, regex)
+
+Arguments
+
+input_string - the string to find matches in
+regex - The regular expression to match against. Backslash characters must be double escaped (e.g., "\\s" to match a white space character).
+
+
+
+Examples
+
+regexp_substr('abc123','(\\d+)') → '123'
+
+
+
+
+
+
+
+replace
+Returns a string with the supplied string, array, or map of strings replaced.
+String & array variant
+Returns a string with the supplied string or array of strings replaced by a string or an array of strings.
+
+
+
+
+
+
+Syntax
+replace(string, before, after)
+
+Arguments
+
+string - the input string
+before - the string or array of strings to replace
+after - the string or array of strings to use as a replacement
+
+
+
+Examples
+
+replace('QGIS SHOULD ROCK','SHOULD','DOES') → 'QGIS DOES ROCK'
+replace('QGIS ABC',array('A','B','C'),array('X','Y','Z')) → 'QGIS XYZ'
+replace('QGIS',array('Q','S'),'') → 'GI'
+
+
+
+
+
+Map variant
+Returns a string with the supplied map keys replaced by paired values. Longer map keys are evaluated first.
+
+
+
+
+
+
+Syntax
+replace(string, map)
+
+Arguments
+
+string - the input string
+map - the map containing keys and values
+
+
+
+Examples
+
+replace('APP SHOULD ROCK',map('APP','QGIS','SHOULD','DOES')) → 'QGIS DOES ROCK'
+replace('forty two',map('for','4','two','2','forty two','42')) → '42'
+
+
+
+
+
+
+
+right
+Returns a substring that contains the n rightmost characters of the string.
+
+
+
+
+
+
+Syntax
+right(string, length)
+
+Arguments
+
+string - a string
+length - integer. The number of characters from the right of the string to return.
+
+
+
+Examples
+
+right('Hello World',5) → 'World'
+
+
+
+
+
+
+
+rpad
+Returns a string padded on the right to the specified width, using a fill character. If the target width is smaller than the string's length, the string is truncated.
+
+
+
+
+
+
+Syntax
+rpad(string, width, fill)
+
+Arguments
+
+string - string to pad
+width - length of new string
+fill - character to pad the remaining space with
+
+
+
+Examples
+
+rpad('Hello', 10, 'x') → 'Helloxxxxx'
+rpad('Hello', 3, 'x') → 'Hel'
+
+
+
+
+
+
+
+rtrim
+Removes the longest string containing only the specified characters (a space by default) from the end of string.
+
+
+
+
+
+
+Syntax
+rtrim(string, [characters=' '])
+[] marks optional arguments
+
+
+Arguments
+
+string - string to trim
+characters - characters to trim
+
+
+
+Examples
+
+rtrim('   hello world  ') → '   hello world'
+rtrim('testxxzx', 'xyz') → 'test'
+
+
+
+
+
+
+
+strpos
+Return the first matching position of a substring within another string, or 0 if the substring is not found.
+
+
+
+
+
+
+Syntax
+strpos(haystack, needle)
+
+Arguments
+
+haystack - string that is to be searched
+needle - string to search for
+
+
+
+Examples
+
+strpos('HELLO WORLD','WORLD') → 7
+strpos('HELLO WORLD','GOODBYE') → 0
+
+
+
+
+
+
+
+substr
+Returns a part of a string.
+
+
+
+
+
+
+Syntax
+substr(string, start, [length])
+[] marks optional arguments
+
+
+Arguments
+
+string - the full input string
+start - integer representing start position to extract beginning with 1; if start is negative, the return string will begin at the end of the string minus the start value
+length - integer representing length of string to extract; if length is negative, the return string will omit the given length of characters from the end of the string
+
+
+
+Examples
+
+substr('HELLO WORLD',3,5) → 'LLO W'
+substr('HELLO WORLD',6) → ' WORLD'
+substr('HELLO WORLD',-5) → 'WORLD'
+substr('HELLO',3,-1) → 'LL'
+substr('HELLO WORLD',-5,2) → 'WO'
+substr('HELLO WORLD',-5,-1) → 'WORL'
+
+
+
+
+
+
+
+title
+Converts all words of a string to title case (all words lower case with leading capital letter).
+
+
+
+
+
+
+Syntax
+title(string)
+
+Arguments
+
+string - the string to convert to title case
+
+
+
+Examples
+
+title('hello WOrld') → 'Hello World'
+
+
+
+
+
+
+
+to_string
+Converts a number to string. The conversion is not locale-aware, see 'format_number' for a locale-aware alternative.
+
+
+
+
+
+
+Syntax
+to_string(number)
+
+Arguments
+
+number - Integer or real value. The number to convert to string.
+
+
+
+Examples
+
+to_string(1.23) → '1.23'
+
+
+
+
+
+
+
+trim
+Removes all leading and trailing whitespace (spaces, tabs, etc) from a string.
+
+
+
+
+
+
+Syntax
+trim(string)
+
+Arguments
+
+string - string to trim
+
+
+
+Examples
+
+trim('   hello world  ') → 'hello world'
+
+
+
+
+
+
+
+upper
+Converts a string to upper case letters.
+
+
+
+
+
+
+Syntax
+upper(string)
+
+Arguments
+
+string - the string to convert to upper case
+
+
+
+Examples
+
+upper('hello WOrld') → 'HELLO WORLD'
+
+
+
+
+
+
+
+wordwrap
+Returns a string wrapped to a maximum/minimum number of characters.
+
+
+
+
+
+
+Syntax
+wordwrap(string, wrap_length, [delimiter_string])
+[] marks optional arguments
+
+
+Arguments
+
+string - the string to be wrapped
+wrap_length - an integer. If wrap_length is positive the number represents the ideal maximum number of characters to wrap; if negative, the number represents the minimum number of characters to wrap.
+delimiter_string - Optional delimiter string to wrap to a new line.
+
+
+
+Examples
+
+wordwrap('UNIVERSITY OF QGIS',13) → 'UNIVERSITY OF<br>QGIS'
+wordwrap('UNIVERSITY OF QGIS',-3) → 'UNIVERSITY<br>OF QGIS'
+
+
+
+
+
+
+

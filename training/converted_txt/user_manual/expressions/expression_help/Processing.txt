@@ -1,0 +1,37 @@
+
+
+
+
+
+orphan:
+
+
+
+
+parameter
+Returns the value of a processing algorithm input parameter.
+
+
+
+
+
+
+Syntax
+parameter(name)
+
+Arguments
+
+name - name of the corresponding input parameter
+
+
+
+Examples
+
+parameter('BUFFER_SIZE') → 5.6
+
+
+
+
+
+
+

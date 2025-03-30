@@ -1,0 +1,67 @@
+
+Using QGIS Core Plugins
+Below is the list of Core plugins provided with QGIS.
+They are not necessarily enabled by default.
+
+
+
+
+
+
+
+
+Icon
+Plugin
+Description
+Manual Reference
+
+
+
+
+DB Manager
+Manage your databases within QGIS
+:ref:`dbmanager`
+
+
+Geometry Checker
+Check and repair errors in vector geometries
+:ref:`geometry_checker`
+
+
+GRASS 7
+GRASS functionality
+:ref:`sec_grass`
+
+
+GRASS GIS provider
+GRASS GIS Processing functionality
+:ref:`sec_grass`
+
+
+MetaSearch Catalog Client
+Interact with metadata catalog services (CSW)
+:ref:`metasearch`
+
+
+Offline Editing
+Offline editing and synchronizing with database
+:ref:`offlinedit`
+
+
+Processing
+Spatial data processing framework
+:ref:`label_processing`
+
+
+Topology Checker
+Find topological errors in vector layers
+:ref:`topology`
+
+
+
+
+Note
+To use the Core Plugins  GRASS 7,  GRASS GIS provider,
+they have to be configured. Informations can be found :ref:`here <processing.results>`.
+
+

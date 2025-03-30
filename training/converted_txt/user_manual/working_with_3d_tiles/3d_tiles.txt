@@ -1,0 +1,168 @@
+
+Working with 3D Tiles
+
+What are 3D Tiles?
+3D tiles are specification for streaming and rendering large-scale 3D
+geospatial datasets. They use a hierarchical structure to efficiently manage
+and display 3D content, optimising performance by dynamically loading
+appropriate levels of detail. This technology is widely used in urban
+planning, architecture, simulation, gaming, and virtual reality, providing
+a standardised and interoperable solution for visualising complex geographical data.
+
+
+Example of 3D tiles
+
+Currently, QGIS supports two formats of 3D tiles:
+
+Cesium 3D tiles,
+used primarily for complex 3D models of buildings or whole cities.
+Such datasets can be provided by cloud-based platforms such as Cesium Ion
+or Google (Photorealistic 3D Tiles).
+Quantized Mesh tiles,
+used for terrain elevation data.
+
+See :ref:`3d_tiles` for instructions on how to add these data sources to QGIS.
+
+
+3D Tiles Properties
+The 3D tiles :guilabel:`Layer Properties` dialog provides the following sections:
+
+
+
+
+
+
+
+ :ref:`Information <3dtilesinformationmenu>`
+ :ref:`Source <3dtilessourcemenu>`
+ :ref:`Symbology <3dtilessymbologymenu>`[1]
+
+ :ref:`3D View <3dtiles3dviewmenu>`[1]
+ :ref:`Rendering <3dtilesrenderingmenu>`
+ :ref:`Elevation <3dtileselevationmenu>`[1]
+
+ :ref:`Metadata <3dtilesmetadatamenu>`
+ 
+ 
+
+
+
+[1] Also available in the :ref:`Layer styling panel <layer_styling_panel>`
+
+Information Properties
+The :guilabel:`Information` tab is read-only and represents an interesting
+place to quickly grab summarized information and metadata on the current layer.
+Provided information are:
+
+based on the provider of the layer: name, URL, source type and path, number
+of zoom levels
+custom properties, used to store in the active project additional information about the layer.
+More properties can be created and managed using PyQGIS, specifically through
+the :pyqgis:`setCustomProperty() <qgis.core.QgsMapLayer.setCustomProperty>` method.
+the Coordinate Reference System: name, units, method, accuracy, reference
+(i.e. whether it's static or dynamic)
+picked from the :ref:`filled metadata <3dtilesmetadatamenu>`: access,
+extents, links, contacts, history...
+
+
+
+Source Properties
+The  :guilabel:`Source` tab displays basic information about
+the selected 3D tile, including:
+
+the :guilabel:`Layer name` to display in the :guilabel:`Layers Panel`;
+the :guilabel:`Coordinate Reference System`:
+Displays the layer's
+:ref:`Coordinate Reference System (CRS) <layer_crs>`.
+You can change the layer's CRS, by selecting a recently used one in
+the drop-down list or clicking on the 
+Select CRS button (see :ref:`crs_selector`).
+Use this process only if the layer CRS is wrong or not specified.
+
+
+
+Symbology Properties
+
+
+3D Tile Layer Symbology
+
+By default, the layer is styled using texture, but you can change it
+to see the wireframe mesh behind the scene by choosing :guilabel:`Wireframe`
+in the drop-down menu. You can also, change the mesh fill and line symbols
+similar to the vector polygons.
+Checking  :guilabel:`Use texture colors` will render each mesh element
+with the average value of the full texture.
+This is a good option to try when dealing with a large dataset and
+want to get a quick overview of the data.
+
+
+3D Tiles - textured and wireframe
+
+To view the data you can open  :guilabel:`New 3D map view`.
+
+
+3D Map View
+
+From the :guilabel:`Symbology` tab, you can also set some options that
+invariably act on all features of the layer:
+
+:guilabel:`Maximum error`: This parameter determines the level of detail
+displayed in the 3D model. Similar to point clouds, 3D tiles
+often contain more information than necessary for visual representation.
+By adjusting this setting, you control the balance between display density
+and rendering speed. A larger value (e.g., 5 mm) may introduce noticeable
+gaps between elements, while a smaller value (e.g., 0.1 mm) could lead to
+the rendering of an excessive number of details, potentially slowing down
+the rendering process. Different units can be selected to tailor the setting
+to your specific needs.
+:guilabel:`Opacity`: Adjust the visibility of the underlying layer on the
+map canvas using this tool. Use slider to tailor the visibility
+of your scene layer according to your preferences. Alternatively, specify the
+exact percentage of visibility through the menu next to the slider.
+:guilabel:`Blending mode`: You can achieve special rendering effects with these tools
+that you may previously only know from graphics programs.
+The pixels of your overlaying and underlaying layers are mixed through the settings
+described in :ref:`blend-modes`.
+
+
+
+3D View Properties
+
+:guilabel:`Maximum screen space error` determines the threshold for swapping
+terrain tiles with more detailed ones (and vice versa) - i.e. how soon the 3D
+view will use higher quality tiles. Lower numbers mean more details in the
+scene at the expenses of increased rendering complexity.
+ :guilabel:`Show bounding boxes` Show 3D bounding boxes of the
+terrain tiles (useful for troubleshooting terrain issues).
+
+
+
+Rendering Properties
+Under  :guilabel:`Scale dependent visibility`,
+you can set the :guilabel:`Maximum (inclusive)`
+and :guilabel:`Minimum (exclusive)` scales,
+defining a range of scales in which features will be visible.
+Out of this range, they are hidden.
+The  Set to current canvas scale button helps you
+use the current map canvas scale as boundary of the range visibility.
+See :ref:`label_scaledepend` for more information.
+
+
+Elevation Properties
+The  :guilabel:`Elevation` tab provides options to control
+the layer elevation properties within a :ref:`3D map view <label_3dmapview>`.
+Specifically, you can set:
+
+:guilabel:`Elevation Surface`: how the 3D layer vertices Z values
+should be interpreted as terrain elevation.
+You can apply a :guilabel:`Scale` factor and an :guilabel:`Offset`.
+
+
+
+Metadata Properties
+The  :guilabel:`Metadata` tab provides you with options
+to create and edit a metadata report on your layer.
+See :ref:`metadatamenu` for more information.
+
+
+

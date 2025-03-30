@@ -1,0 +1,833 @@
+
+The Browser panel
+
+
+Resources that can be opened / run from the Browser
+Browser panel top-level entries
+Favorites
+Spatial Bookmarks
+Project Home
+Drives and file system
+Database entries
+Tiles and Web Services
+
+
+Resources
+
+
+The QGIS Browser panel is a great tool for browsing, searching,
+inspecting, copying and loading QGIS resources.
+Only resources that QGIS knows how to handle are shown in the
+browser.
+Using the Browser panel you can locate, inspect and add data, as
+described in :ref:`browser_panel`.
+In addition, the Browser panel supports drag and drop of many QGIS
+resources, such as project files, Python scripts, Processing scripts and
+Processing models.
+Python scripts, Processing scripts and Processing models can also be opened for
+editing in an external editor and the graphical modeller.
+You can drag and drop layers from the :guilabel:`Layers` panel
+to the :guilabel:`Browser` panel, for instance into a GeoPackage or a
+PostGIS database.
+
+
+The Browser panel
+
+The browser panel (:numref:`figure_browser_panel`) is organised
+as an expandable hierarchy with some fixed top-level entries that
+organise the resources handled by the browser.
+Node entries are expanded by clicking on  to the left
+of the entry name.
+A branch is collapsed by clicking on .
+The  Collapse All button collapses all top-level
+entries.
+In :menuselection:`Settings --> Interface Customization` it is
+possible to disable resources.
+If you, for instance, would not like to show Python scripts in the
+browser, you can uncheck the :menuselection:`Browser --> py` entry,
+and if you want to get rid of your home folder in the browser, you
+can uncheck the :menuselection:`Browser --> special:Home` entry.
+A filter ( Filter Browser) can be used for searching
+based on entry names (both leaf entries and node entries in the
+hierarchy).
+Using the  Options pull-down menu next to the filter
+text field, you can
+
+toggle :guilabel:`Case Sensitive` search
+set the :guilabel:`Filter pattern syntax` to one of
+:guilabel:`Normal`
+:guilabel:`Wildcard(s)`
+:guilabel:`Regular Expressions`
+
+
+
+The Properties widget, showing useful information about some
+entries / resources, can be enabled / disabled using the 
+Enable/disable properties widget button.
+When enabled, it opens at the bottom of the browser panel, as shown in
+:numref:`figure_properties_widget`.
+
+
+The properties widget
+
+A second browser panel can be opened by activating the
+:guilabel:`Browser (2)` panel in :menuselection:`View --> Panels`.
+Having two browser panels can be useful when copying layers between
+resources that are locationed deep down in different branches of the
+browser hierarchy.
+
+Resources that can be opened / run from the Browser
+A lot can be accomplished in the Browser panel
+
+Add vector, raster and mesh layers to your map by double-clicking,
+dragging onto the map canvas or clicking the 
+Add Selected Layers button (after selecting layers)
+Run Python scripts (including Processing algorithms) by
+double-clicking or dragging onto the map canvas
+Run models by double-clicking or dragging onto the map canvas
+:guilabel:`Extract Symbols...` from QGIS Project files using the
+context menu
+Open files with their default applications
+(:guilabel:`Open <file type> Externally...` in the context menu).
+Examples: HTML files, spreadsheets, images, PDFs, text files, ...
+Copy entries
+Rename and delete (multiple) layers (context menu: :menuselection:`Manage -->`)
+Open a file explorer window and directly select the file
+:guilabel:`Show in Files`
+
+Resource specific actions are listed for the different resource groups
+sorted under the top-level entries listed below.
+
+
+Browser panel top-level entries
+
+Favorites
+Often used file system locations can be tagged as favorites.
+The ones you have tagged will appear here.
+In addition to the operations described under Home, the
+context menu allows you to :guilabel:`Rename Favorite...` and
+:guilabel:`Remove Favorite`.
+
+
+Spatial Bookmarks
+This is where you will find your spatial bookmarks, organised
+into :guilabel:`Project Bookmarks` and :guilabel:`User Bookmarks`.
+From the top level context menu, you can create a bookmark
+(:guilabel:`New Spatial Bookmark...`),
+:guilabel:`Show the Spatial Bookmark Manager`,
+:guilabel:`Import Spatial Bookmarks...` and
+:guilabel:`Export Spatial Bookmarks...`.
+For bookmark group entries you can :guilabel:`Export Spatial Bookmarks...`,
+create a bookmark (:guilabel:`New Spatial Bookmark...`),
+:guilabel:`Rename Bookmark Group`,
+and :guilabel:`Delete Bookmark Group`.
+For bookmark entries you can :guilabel:`Zoom to Bookmark`,
+:guilabel:`Edit Spatial Bookmark...` and
+:guilabel:`Delete Spatial Bookmark`
+
+
+Project Home
+Available once the project file has been saved, the :guilabel:`Project home`
+entry is a folder containing data and other contents (scripts, models, text, ...)
+that may be used within the current project.
+Displayed in the :guilabel:`Browser` panel, it allows you to quickly
+access data and other files of the project.
+It defaults to the project file folder but can be changed through the
+:menuselection:`Project --> Properties... --> General --> Project home` option,
+or by right-clicking on the :guilabel:`Project Home` item of the Browser panel
+and selecting :guilabel:`Set project home...`.
+Customizing that folder is especially useful in contexts where QGIS projects
+are not stored in the root folder of an organisational 'project', along with datasets.
+
+
+Drives and file system
+The next items of the :guilabel:`Browser` panel depend on the OS in use
+and concern the top level entries of its file system.
+They are mainly:
+
+The :guilabel:`Home` folder, pointing to the current user home folder
+on Unix-based machines, the root :guilabel:`/` folder
+the connected drives, either local or network. Depending on the OS,
+they are directly listed (eg, C:\, D:\) or through the /Volumes
+entry.
+
+From the contextual menu of each of these folders or drives, you can:
+
+refresh the contents
+create a :menuselection:`New -->` subitem that is a :guilabel:`Directory`,
+:guilabel:`GeoPackage` or ESRI :guilabel:`Shapefile` format dataset
+hide the directory (:guilabel:`Hide from Browser`)
+:guilabel:`Set color`: customize the folder icon color, aiding in rapid
+browser navigation of complex folder structures
+enable :guilabel:`Scanning`:
+ :guilabel:`Monitor for changes`: allows to manually control
+whether a particular directory should be monitored and automatically updated.
+This setting applies to the selected directory and all subdirectories.
+This means that you can manually opt-in to monitoring of network drives
+if you know there's no issue, or manually opt-out of monitoring of large
+directories which you don't want monitored for other reasons.
+By default, remote or network drives are not automatically monitored.
+ :guilabel:`Fast scan this directory`
+
+
+open the directory in your file manager (:guilabel:`Open Directory...`)
+open the directory in a terminal window  (:guilabel:`Open in Terminal...`)
+inspect the :guilabel:`Properties...` or the parent :guilabel:`Directory
+Properties...`
+
+
+
+Database entries
+Depending on your OS and installed drivers, you might have access to different database
+types to use in QGIS. Below are listed the different entries of contextual menu at
+each level of the dataset tree.
+
+
+
+
+
+
+
+
+
+
+
+
+Level
+Context menu
+Type of database
+
+
+GeoPackage
+([1])
+
+SpatiaLite
+
+PostGIS
+
+SAP HANA
+
+MS SQL Server
+
+Oracle
+
+Top menu
+Create a :guilabel:`New Connection…`
+to an existing database
+
+
+
+
+
+
+
+:guilabel:`Create Database…`
+
+
+ 
+ 
+ 
+ 
+
+:guilabel:`Create Database and Layer…`
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Save Connections…` details
+to a file
+ 
+ 
+
+
+
+ 
+
+:guilabel:`Load Connections…`
+ 
+ 
+
+
+
+ 
+
+Connection
+/ Database
+:guilabel:`Refresh` a connection
+ 
+ 
+
+
+
+
+
+:guilabel:`Edit Connection…` settings
+ 
+ 
+
+
+
+
+
+:guilabel:`Duplicate Connection`
+ 
+ 
+
+
+
+
+
+:guilabel:`Remove Connection…`
+
+
+
+
+
+
+
+:menuselection:`New Field Domain -->
+New Range Domain`
+
+ 
+ 
+ 
+ 
+ 
+
+:menuselection:`New Field Domain -->
+New Coded Values Domain`
+
+ 
+ 
+ 
+ 
+ 
+
+:menuselection:`New Field Domain -->
+New Glob Domain`
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Delete <database_name>`
+
+
+ 
+ 
+ 
+ 
+
+:guilabel:`Compact Database (VACUUM)`
+
+ 
+ 
+ 
+ 
+ 
+
+Create a :guilabel:`New Schema…`
+ 
+ 
+
+
+
+ 
+
+Create a :guilabel:`New Table…`
+
+
+
+
+ 
+ 
+
+:guilabel:`Execute SQL…` query
+
+
+
+
+ 
+ 
+
+Schema
+:guilabel:`Refresh` a schema
+ 
+ 
+
+
+
+ 
+
+:menuselection:`Schema Operations -->
+Rename Schema…`
+ 
+ 
+
+
+
+ 
+
+:menuselection:`Schema Operations -->
+Delete Schema…`
+ 
+ 
+
+
+
+ 
+
+Create a :guilabel:`New Table…`
+ 
+ 
+
+
+ 
+ 
+
+:guilabel:`Execute SQL…` query
+ 
+ 
+
+
+ 
+ 
+
+Table / Layer
+:menuselection:`Table Operations -->
+Rename Table…`
+ 
+ 
+
+
+
+ 
+
+:menuselection:`Table Operations -->
+Truncate Table…`
+ 
+ 
+
+ 
+
+ 
+
+:guilabel:`Execute SQL…` query
+
+
+
+ 
+ 
+ 
+
+:menuselection:`Export Layer --> To file…`
+
+
+
+
+
+ 
+
+:menuselection:`Manage -->
+Rename Layer <layer_name>…`
+
+
+ 
+ 
+ 
+ 
+
+:menuselection:`Manage -->
+Delete Layer <layer_name>…`
+
+
+
+
+
+ 
+
+:menuselection:`Manage -->
+Delete Selected Layers`
+
+
+
+
+
+ 
+
+:menuselection:`Manage -->
+Add Layer to Project`
+
+
+
+
+
+ 
+
+:menuselection:`Manage -->
+Add Selected Layers to Project`
+
+
+
+
+
+ 
+
+Open :guilabel:`Layer Properties…` dialog
+
+
+
+
+
+ 
+
+Open :guilabel:`File Properties…` dialog
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Open with Data Source Manager`
+
+
+ 
+ 
+ 
+ 
+
+Fields
+:guilabel:`Add New Field…`
+
+
+
+
+ 
+ 
+
+Field
+:guilabel:`Set Field Domain`
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Rename Field`
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Set Alias…`
+
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Set Comment…`
+
+ 
+
+ 
+ 
+ 
+
+:guilabel:`Delete Field…`
+
+
+
+
+ 
+ 
+
+
+
+
+
+
+[1]The different entries may also be available for some GDAL supported
+vector file formats
+such as ESRI File Geodatabase, FlatGeobuf, GeoParquet, NetCDF, ... when compatible.
+
+
+
+Note
+When loading vector layers into QGIS, fields with  :guilabel:`Field Domains`
+(such as those defined in a GeoPackage or ESRI File Geodatabase) are automatically
+detected. These domains are database-level constraints, meaning they are enforced
+by the database itself and apply across different applications, not just QGIS.
+
+
+
+Tiles and Web Services
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Level
+Context menu
+Type of services
+
+
+WMS / WMTS
+
+Vector Tiles
+
+XYZ Tiles
+
+WCS
+
+WFS / OGC
+API - Features
+
+ArcGIS REST
+Servers
+
+Scene
+
+Cloud
+
+
+
+Top menu
+Create a :guilabel:`New Connection…`
+
+ 
+
+
+
+
+
+
+
+Create a :guilabel:`New Generic Connection…`
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+Create a :guilabel:`New ArcGIS Vector Tile
+Service Connection…`
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+:guilabel:`Save Connections…` details
+to a file
+
+
+
+
+
+
+
+
+
+:guilabel:`Load Connections…`
+
+
+
+
+
+
+
+
+
+Connection
+:guilabel:`Refresh` connection
+
+ 
+
+
+
+
+ 
+ 
+
+:guilabel:`Edit…` connection settings
+
+
+
+
+
+
+
+
+
+:guilabel:`Duplicate` connection
+
+
+
+
+
+
+
+
+
+:guilabel:`Delete` connection
+
+
+
+
+
+
+
+
+
+:guilabel:`View Service Info` in Web browser
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+Table / Layer
+:menuselection:`Export Layer --> To File...`
+
+ 
+
+
+
+
+ 
+ 
+
+:guilabel:`Add layer to Project`
+
+
+
+
+
+
+
+ 
+
+Open :guilabel:`Layer properties…` dialog
+
+
+
+
+
+
+
+ 
+
+:guilabel:`View Service Info` in Web browser
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+
+
+
+
+
+Resources
+
+Project files.
+The context menu for QGIS project files allows you to:
+
+open it (:guilabel:`Open Project`)
+extract symbols (:guilabel:`Extract Symbols...`) - opens the style
+manager that allows you to export symbols to an XML file, add
+symbols to the default style or export as PNG or SVG.
+inspect properties (:guilabel:`File Properties...`)
+
+You can expand the project file to see its layers.
+The context menu of a layer offers the same actions as elsewhere
+in the browser.
+
+QGIS Layer Definition files (QLR).
+The following actions are available from the context menu:
+
+export it (:menuselection:`Export Layer --> To file`)
+add it to the project (:guilabel:`Add Layer to Project`)
+inspect properties (:guilabel:`Layer Properties...`)
+
+
+Processing models (.model3).
+The following actions are available from the context menu:
+
+:guilabel:`Run Model...`)
+:guilabel:`Edit Model...`)
+
+
+QGIS print composer templates (QPT).
+The following action is available from the context menu:
+
+(:guilabel:`New Layout from Template`)
+
+
+Python scripts (.py).
+The following actions are available from the context menu:
+
+(:guilabel:`Run script...`)
+(:guilabel:`Open in External Editor`)
+
+
+Recognized raster formats.
+The following actions are available from the context menu:
+
+delete it (:guilabel:`Delete File <dataset name>`)
+export it (:menuselection:`Export Layer --> To file`)
+add it to the project (:guilabel:`Add Layer to Project`)
+inspect properties (:guilabel:`Layer Properties...`,
+:guilabel:`File Properties...`)
+
+For some formats you can also
+:guilabel:`Open <file type> Externally...`
+
+Recognized vector formats.
+The following actions are available from the context menu:
+
+delete it (:guilabel:`Delete File <dataset name>`)
+export it (:menuselection:`Export Layer --> To file`)
+add it to the project (:guilabel:`Add Layer to Project`)
+inspect properties (:guilabel:`Layer Properties...`,
+:guilabel:`File Properties...`)
+
+For some formats you can also
+:guilabel:`Open <file type> Externally...`
+
+
+
+

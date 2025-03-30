@@ -1,0 +1,4797 @@
+
+
+
+
+
+orphan:
+
+
+
+
+affine_transform
+Returns the geometry after an affine transformation. Calculations are in the Spatial Reference System of this geometry. The operations are performed in a scale, rotation, translation order. If there is a Z or M offset but the coordinate is not present in the geometry, it will be added.
+
+
+
+
+
+
+Syntax
+affine_transform(geometry, delta_x, delta_y, rotation_z, scale_x, scale_y, [delta_z=0], [delta_m=0], [scale_z=1], [scale_m=1])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+delta_x - x-axis translation
+delta_y - y-axis translation
+rotation_z - rotation around z-axis in degrees counter-clockwise
+scale_x - x-axis scale factor
+scale_y - y-axis scale factor
+delta_z - z-axis translation
+delta_m - m-axis translation
+scale_z - z-axis scale factor
+scale_m - m-axis scale factor
+
+
+
+Examples
+
+geom_to_wkt(affine_transform(geom_from_wkt('LINESTRING(1 1, 2 2)'), 2, 2, 0, 1, 1)) → 'LineString (3 3, 4 4)'
+geom_to_wkt(affine_transform(geom_from_wkt('POLYGON((0 0, 0 3, 2 2, 0 0))'), 0, 0, -90, 1, 2)) → 'Polygon ((0 0, 6 0, 4 -2, 0 0))'
+geom_to_wkt(affine_transform(geom_from_wkt('POINT(3 1)'), 0, 0, 0, 1, 1, 5, 0)) → 'PointZ (3 1 5)'
+
+
+
+
+
+
+
+Vector point layer (green dots) before (left), and after (right) an affine transformation (translation).
+
+
+
+angle_at_vertex
+Returns the bisector angle (average angle) to the geometry for a specified vertex on a linestring geometry. Angles are in degrees clockwise from north.
+
+
+
+
+
+
+Syntax
+angle_at_vertex(geometry, vertex)
+
+Arguments
+
+geometry - a linestring geometry
+vertex - vertex index, starting from 0; if the value is negative, the selected vertex index will be its total count minus the absolute value
+
+
+
+Examples
+
+angle_at_vertex(geometry:=geom_from_wkt('LineString(0 0, 10 0, 10 10)'),vertex:=1) → 45.0
+
+
+
+
+
+
+
+apply_dash_pattern
+Applies a dash pattern to a geometry, returning a MultiLineString geometry which is the input geometry stroked along each line/ring with the specified pattern.
+
+
+
+
+
+
+Syntax
+apply_dash_pattern(geometry, pattern, [start_rule=no_rule], [end_rule=no_rule], [adjustment=both], [pattern_offset=0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry (accepts (multi)linestrings or (multi)polygons).
+pattern - dash pattern, as an array of numbers representing dash and gap lengths. Must contain an even number of elements.
+start_rule - optional rule for constraining the start of the pattern. Valid values are 'no_rule', 'full_dash', 'half_dash', 'full_gap', 'half_gap'.
+end_rule - optional rule for constraining the end of the pattern. Valid values are 'no_rule', 'full_dash', 'half_dash', 'full_gap', 'half_gap'.
+adjustment - optional rule for specifying which part of patterns are adjusted to fit the desired pattern rules. Valid values are 'both', 'dash', 'gap'.
+pattern_offset - Optional distance specifying a specific distance along the pattern to commence at.
+
+
+
+Examples
+
+geom_to_wkt(apply_dash_pattern(geom_from_wkt('LINESTRING(1 1, 10 1)'), array(3, 1))) → MultiLineString ((1 1, 4 1),(5 1, 8 1),(9 1, 10 1, 10 1))
+geom_to_wkt(apply_dash_pattern(geom_from_wkt('LINESTRING(1 1, 10 1)'), array(3, 1), start_rule:='half_dash')) → MultiLineString ((1 1, 2.5 1),(3.5 1, 6.5 1),(7.5 1, 10 1, 10 1))
+
+
+
+
+
+
+
+$area
+Returns the area of the current feature. The area calculated by this function respects both the current project's ellipsoid setting and area unit settings. For example, if an ellipsoid has been set for the project then the calculated area will be ellipsoidal, and if no ellipsoid is set then the calculated area will be planimetric.
+
+
+
+
+
+
+Syntax
+$area
+
+Examples
+
+$area → 42
+
+
+
+
+
+
+
+area
+Returns the area of a geometry polygon object. Calculations are always planimetric in the Spatial Reference System (SRS) of this geometry, and the units of the returned area will match the units for the SRS. This differs from the calculations performed by the $area function, which will perform ellipsoidal calculations based on the project's ellipsoid and area unit settings.
+
+
+
+
+
+
+Syntax
+area(geometry)
+
+Arguments
+
+geometry - polygon geometry object
+
+
+
+Examples
+
+area(geom_from_wkt('POLYGON((0 0, 4 0, 4 2, 0 2, 0 0))')) → 8.0
+
+
+
+
+
+
+
+azimuth
+Returns the north-based azimuth as the angle in radians measured clockwise from the vertical on point_a to point_b.
+
+
+
+
+
+
+Syntax
+azimuth(point_a, point_b)
+
+Arguments
+
+point_a - point geometry
+point_b - point geometry
+
+
+
+Examples
+
+degrees( azimuth( make_point(25, 45), make_point(75, 100) ) ) → 42.273689
+degrees( azimuth( make_point(75, 100), make_point(25,45) ) ) → 222.273689
+
+
+
+
+
+
+
+bearing
+Returns the north-based bearing as the angle in radians measured clockwise on the ellipsoid from the vertical on point_a to point_b.
+
+
+
+
+
+
+Syntax
+bearing(point_a, point_b, [source_crs], [ellipsoid])
+[] marks optional arguments
+
+
+Arguments
+
+point_a - point geometry
+point_b - point geometry
+source_crs - an optional string or CRS object representing the source CRS of the points. By default the current layer's CRS is used.
+ellipsoid - an optional string representing the acronym or the authority ID (e.g., 'EPSG:7030') of the ellipsoid on which the bearing should be measured. By default the current project's ellipsoid setting is used.
+
+
+
+Examples
+
+degrees( bearing( make_point(16198544, -4534850), make_point(18736872, -1877769), 'EPSG:3857', 'EPSG:7030') ) → 49.980071
+degrees( bearing( make_point(18736872, -1877769), make_point(16198544, -4534850), 'EPSG:3857', 'WGS84') ) → 219.282386
+
+
+
+
+
+
+
+boundary
+Returns the closure of the combinatorial boundary of the geometry (ie the topological boundary of the geometry). For instance, a polygon geometry will have a boundary consisting of the linestrings for each ring in the polygon. Some geometry types do not have a defined boundary, e.g., points or geometry collections, and will return NULL.
+
+
+
+
+
+
+Syntax
+boundary(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt(boundary(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))'))) → 'LineString(1 1,0 0,-1 1,1 1)'
+geom_to_wkt(boundary(geom_from_wkt('LineString(1 1,0 0,-1 1)'))) → 'MultiPoint ((1 1),(-1 1))'
+
+
+
+
+
+
+
+Boundary (black dashed line) of the source polygon layer
+
+
+
+bounds
+Returns a geometry which represents the bounding box of an input geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+bounds(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+bounds(@geometry) → bounding box of the current feature's geometry
+geom_to_wkt(bounds(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))'))) → 'Polygon ((-1 0, 1 0, 1 1, -1 1, -1 0))'
+
+
+
+
+
+
+
+Black lines represent the bounding boxes of each polygon feature
+
+
+
+bounds_height
+Returns the height of the bounding box of a geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+bounds_height(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+bounds_height(@geometry) → height of bounding box of the current feature's geometry
+bounds_height(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))')) → 1
+
+
+
+
+
+
+
+bounds_width
+Returns the width of the bounding box of a geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+bounds_width(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+bounds_width(@geometry) → width of bounding box of the current feature's geometry
+bounds_width(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))')) → 2
+
+
+
+
+
+
+
+buffer
+Returns a geometry that represents all points whose distance from this geometry is less than or equal to distance. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+buffer(geometry, distance, [segments=8], [cap='round'], [join='round'], [miter_limit=2])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+distance - buffer distance in layer units
+segments - number of segments to use to represent a quarter circle when a round join style is used. A larger number results in a smoother buffer with more nodes.
+cap - end cap style for buffer. Valid values are 'round', 'flat' or 'square'
+join - join style for buffer. Valid values are 'round', 'bevel' or 'miter'.
+miter_limit - miter distance limit, for use when the join style is set to 'miter'
+
+
+
+Examples
+
+buffer(@geometry, 10.5) → polygon of the current feature's geometry buffered by 10.5 units
+
+
+
+
+
+
+
+Buffer (in yellow) of points, line, polygon with positive buffer, and polygon with negative buffer
+
+
+
+buffer_by_m
+Creates a buffer along a line geometry where the buffer diameter varies according to the m-values at the line vertices.
+
+
+
+
+
+
+Syntax
+buffer_by_m(geometry, [segments=8])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - input geometry. Must be a (multi)line geometry with m values.
+segments - number of segments to approximate quarter-circle curves in the buffer.
+
+
+
+Examples
+
+buffer_by_m(geometry:=geom_from_wkt('LINESTRINGM(1 2 0.5, 4 2 0.2)'),segments:=8) → A variable width buffer starting with a diameter of 0.5 and ending with a diameter of 0.2 along the linestring geometry.
+
+
+
+
+
+
+
+Buffering line features using the m value on the vertices
+
+
+
+centroid
+Returns the geometric center of a geometry.
+
+
+
+
+
+
+Syntax
+centroid(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+centroid(@geometry) → a point geometry
+
+
+
+
+
+
+
+The red stars represent the centroids of the features of the input layer.
+
+
+
+close_line
+Returns a closed line string of the input line string by appending the first point to the end of the line, if it is not already closed. If the geometry is not a line string or multi line string then the result will be NULL.
+
+
+
+
+
+
+Syntax
+close_line(geometry)
+
+Arguments
+
+geometry - a line string geometry
+
+
+
+Examples
+
+geom_to_wkt(close_line(geom_from_wkt('LINESTRING(0 0, 1 0, 1 1)'))) → 'LineString (0 0, 1 0, 1 1, 0 0)'
+geom_to_wkt(close_line(geom_from_wkt('LINESTRING(0 0, 1 0, 1 1, 0 0)'))) → 'LineString (0 0, 1 0, 1 1, 0 0)'
+
+
+
+
+
+
+
+closest_point
+Returns the point on geometry1 that is closest to geometry2.
+
+
+
+
+
+
+Syntax
+closest_point(geometry1, geometry2)
+
+Arguments
+
+geometry1 - geometry to find closest point on
+geometry2 - geometry to find closest point to
+
+
+
+Examples
+
+geom_to_wkt(closest_point(geom_from_wkt('LINESTRING (20 80, 98 190, 110 180, 50 75 )'),geom_from_wkt('POINT(100 100)'))) → 'Point(73.0769 115.384)'
+
+
+
+
+
+
+
+collect_geometries
+Collects a set of geometries into a multi-part geometry object.
+List of arguments variant
+Geometry parts are specified as separate arguments to the function.
+
+
+
+
+
+
+Syntax
+collect_geometries(geometry1, geometry2, ...)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt(collect_geometries(make_point(1,2), make_point(3,4), make_point(5,6))) → 'MultiPoint ((1 2),(3 4),(5 6))'
+
+
+
+
+
+Array variant
+Geometry parts are specified as an array of geometry parts.
+
+
+
+
+
+
+Syntax
+collect_geometries(array)
+
+Arguments
+
+array - array of geometry objects
+
+
+
+Examples
+
+geom_to_wkt(collect_geometries(array(make_point(1,2), make_point(3,4), make_point(5,6)))) → 'MultiPoint ((1 2),(3 4),(5 6))'
+
+
+
+
+
+
+
+combine
+Returns the combination of two geometries.
+
+
+
+
+
+
+Syntax
+combine(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+geom_to_wkt( combine( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 2 1)' ) ) ) → 'MULTILINESTRING((4 4, 2 1), (3 3, 4 4), (4 4, 5 5))'
+geom_to_wkt( combine( geom_from_wkt( 'LINESTRING(3 3, 4 4)' ), geom_from_wkt( 'LINESTRING(3 3, 6 6, 2 1)' ) ) ) → 'LINESTRING(3 3, 4 4, 6 6, 2 1)'
+
+
+
+
+
+
+
+concave_hull
+Returns a possibly concave polygon that contains all the points in the geometry
+
+
+
+
+
+
+Syntax
+concave_hull(geometry, target_percent, [allow_holes=False])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+target_percent - the percentage of area of the convex hull the solution tries to approach. A target_percent of 1 gives the same result as the convex hull. A target_percent between 0 and 0.99 produces a result that should have a smaller area than the convex hull.
+allow_holes - optional argument specifying whether to allow holes within the output geometry. Defaults to FALSE, set to TRUE to avoid including holes in the output geometry.
+
+
+
+Examples
+
+geom_to_wkt(concave_hull(geom_from_wkt('MULTILINESTRING((106 164,30 112,74 70,82 112,130 94,130 62,122 40,156 32,162 76,172 88),(132 178,134 148,128 136,96 128,132 108,150 130,170 142,174 110,156 96,158 90,158 88),(22 64,66 28,94 38,94 68,114 76,112 30,132 10,168 18,178 34,186 52,184 74,190 100,190 122,182 148,178 170,176 184,156 164,146 178,132 186,92 182,56 158,36 150,62 150,76 128,88 118))'), 0.99)) → 'Polygon ((30 112, 36 150, 92 182, 132 186, 176 184, 190 122, 190 100, 186 52, 178 34, 168 18, 132 10, 112 30, 66 28, 22 64, 30 112))'
+
+
+
+
+
+
+
+Concave hulls with increasing target_percent parameter
+
+
+
+contains
+Tests whether a geometry contains another. Returns TRUE if and only if no points of geometry2 lie in the exterior of geometry1, and at least one point of the interior of geometry2 lies in the interior of geometry1.
+
+
+
+
+
+
+Syntax
+contains(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+contains( geom_from_wkt( 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))' ), geom_from_wkt( 'POINT(0.5 0.5 )' ) ) → TRUE
+contains( geom_from_wkt( 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → FALSE
+
+
+
+
+
+
+
+convex_hull
+Returns the convex hull of a geometry. It represents the minimum convex geometry that encloses all geometries within the set.
+
+
+
+
+
+
+Syntax
+convex_hull(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt( convex_hull( geom_from_wkt( 'LINESTRING(3 3, 4 4, 4 10)' ) ) ) → 'POLYGON((3 3, 4 10, 4 4, 3 3))'
+
+
+
+
+
+
+
+Black lines identify the convex hull for each feature
+
+
+
+crosses
+Tests whether a geometry crosses another. Returns TRUE if the supplied geometries have some, but not all, interior points in common.
+
+
+
+
+
+
+Syntax
+crosses(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+crosses( geom_from_wkt( 'LINESTRING(3 5, 4 4, 5 3)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+crosses( geom_from_wkt( 'POINT(4 5)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → FALSE
+
+
+
+
+
+
+
+densify_by_count
+Takes a polygon or line layer geometry and generates a new one in which the geometries have a larger number of vertices than the original one.
+
+
+
+
+
+
+Syntax
+densify_by_count(geometry, vertices)
+
+Arguments
+
+geometry - a geometry (accepts (multi)linestrings or (multi)polygons).
+vertices - number of vertices to add (per segment)
+
+
+
+Examples
+
+geom_to_wkt(densify_by_count(geom_from_wkt('LINESTRING(1 1, 10 1)'), 3)) → LineString (1 1, 3.25 1, 5.5 1, 7.75 1, 10 1)
+
+
+
+
+
+
+
+Red points show the vertices before and after the densify
+
+
+
+densify_by_distance
+Takes a polygon or line layer geometry and generates a new one in which the geometries are densified by adding additional vertices on edges that have a maximum distance of the specified interval distance.
+
+
+
+
+
+
+Syntax
+densify_by_distance(geometry, distance)
+
+Arguments
+
+geometry - a geometry (accepts (multi)linestrings or (multi)polygons).
+distance - maximum interval distance between vertices in output geometry
+
+
+
+Examples
+
+geom_to_wkt(densify_by_distance(geom_from_wkt('LINESTRING(1 1, 10 1)'), 4)) → LineString (1 1, 4 1, 7 1, 10 1)
+
+
+
+
+
+
+
+Densify geometry at a given interval
+
+
+
+difference
+Returns a geometry that represents that part of geometry1 that does not intersect with geometry2.
+
+
+
+
+
+
+Syntax
+difference(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+geom_to_wkt( difference( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4)' ) ) ) → 'LINESTRING(4 4, 5 5)'
+
+
+
+
+
+
+
+disjoint
+Tests whether geometries do not spatially intersect. Returns TRUE if the geometries do not share any space together.
+
+
+
+
+
+
+Syntax
+disjoint(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+disjoint( geom_from_wkt( 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0 ))' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+disjoint( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'POINT(4 4)' )) → FALSE
+
+
+
+
+
+
+
+distance
+Returns the minimum distance (based on spatial reference) between two geometries in projected units.
+
+
+
+
+
+
+Syntax
+distance(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+distance( geom_from_wkt( 'POINT(4 4)' ), geom_from_wkt( 'POINT(4 8)' ) ) → 4
+
+
+
+
+
+
+
+distance_to_vertex
+Returns the distance along the geometry to a specified vertex.
+
+
+
+
+
+
+Syntax
+distance_to_vertex(geometry, vertex)
+
+Arguments
+
+geometry - a linestring geometry
+vertex - vertex index, starting from 0; if the value is negative, the selected vertex index will be its total count minus the absolute value
+
+
+
+Examples
+
+distance_to_vertex(geometry:=geom_from_wkt('LineString(0 0, 10 0, 10 10)'),vertex:=1) → 10.0
+
+
+
+
+
+
+
+end_point
+Returns the last node from a geometry.
+
+
+
+
+
+
+Syntax
+end_point(geometry)
+
+Arguments
+
+geometry - geometry object
+
+
+
+Examples
+
+geom_to_wkt(end_point(geom_from_wkt('LINESTRING(4 0, 4 2, 0 2)'))) → 'Point (0 2)'
+
+
+
+
+
+
+
+End point of a line feature
+
+
+
+exif_geotag
+Creates a point geometry from the exif geotags of an image file.
+
+
+
+
+
+
+Syntax
+exif_geotag(path)
+
+Arguments
+
+path - An image file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+geom_to_wkt(exif_geotag('/my/photo.jpg')) → 'Point (2 4)'
+
+
+
+
+
+
+
+extend
+Extends the start and end of a linestring geometry by a specified amount. Lines are extended using the bearing of the first and last segment in the line. For a multilinestring, all the parts are extended. Distances are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+extend(geometry, start_distance, end_distance)
+
+Arguments
+
+geometry - a (multi)linestring geometry
+start_distance - distance to extend the start of the line
+end_distance - distance to extend the end of the line.
+
+
+
+Examples
+
+geom_to_wkt(extend(geom_from_wkt('LineString(0 0, 1 0, 1 1)'),1,2)) → 'LineString (-1 0, 1 0, 1 3)'
+geom_to_wkt(extend(geom_from_wkt('MultiLineString((0 0, 1 0, 1 1), (2 2, 0 2, 0 5))'),1,2)) → 'MultiLineString ((-1 0, 1 0, 1 3),(3 2, 0 2, 0 7))'
+
+
+
+
+
+
+
+The red dashes represent the initial and final extension of the original layer
+
+
+
+exterior_ring
+Returns a line string representing the exterior ring of a polygon geometry. If the geometry is not a polygon then the result will be NULL.
+
+
+
+
+
+
+Syntax
+exterior_ring(geometry)
+
+Arguments
+
+geometry - a polygon geometry
+
+
+
+Examples
+
+geom_to_wkt(exterior_ring(geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1),( 0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2, 0.1, 0.1 0.1))'))) → 'LineString (-1 -1, 4 0, 4 2, 0 2, -1 -1)'
+
+
+
+
+
+
+
+The dashed line represents the exterior ring of the polygon
+
+
+
+extrude
+Returns an extruded version of the input (Multi-)Curve or (Multi-)Linestring geometry with an extension specified by x and y.
+
+
+
+
+
+
+Syntax
+extrude(geometry, x, y)
+
+Arguments
+
+geometry - a curve or linestring geometry
+x - x extension, numeric value
+y - y extension, numeric value
+
+
+
+Examples
+
+geom_to_wkt(extrude(geom_from_wkt('LineString(1 2, 3 2, 4 3)'), 1, 2)) → 'Polygon ((1 2, 3 2, 4 3, 5 5, 4 4, 2 4, 1 2))'
+geom_to_wkt(extrude(geom_from_wkt('MultiLineString((1 2, 3 2), (4 3, 8 3))'), 1, 2)) → 'MultiPolygon (((1 2, 3 2, 4 4, 2 4, 1 2)),((4 3, 8 3, 9 5, 5 5, 4 3)))'
+
+
+
+
+
+
+
+Generating a polygon by extruding a line with offset in x and y directions
+
+
+
+flip_coordinates
+Returns a copy of the geometry with the x and y coordinates swapped. Useful for repairing geometries which have had their latitude and longitude values reversed.
+
+
+
+
+
+
+Syntax
+flip_coordinates(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt(flip_coordinates(make_point(1, 2))) → 'Point (2 1)'
+geom_to_wkt(flip_coordinates(geom_from_wkt('LineString(0 2, 1 0, 1 6)'))) → 'LineString (2 0, 0 1, 6 1)'
+
+
+
+
+
+
+
+force_polygon_ccw
+Forces a geometry to respect the convention where exterior rings are counter-clockwise, interior rings are clockwise.
+
+
+
+
+
+
+Syntax
+force_polygon_ccw(geometry)
+
+Arguments
+
+geometry - a geometry. Any non-polygon geometries are returned unchanged.
+
+
+
+Examples
+
+geom_to_wkt(force_polygon_ccw(geometry:=geom_from_wkt('Polygon ((-1 -1, 0 2, 4 2, 4 0, -1 -1))'))) → 'Polygon ((-1 -1, 4 0, 4 2, 0 2, -1 -1))'
+
+
+
+
+
+
+
+force_polygon_cw
+Forces a geometry to respect the convention where exterior rings are clockwise, interior rings are counter-clockwise.
+
+
+
+
+
+
+Syntax
+force_polygon_cw(geometry)
+
+Arguments
+
+geometry - a geometry. Any non-polygon geometries are returned unchanged.
+
+
+
+Examples
+
+geom_to_wkt(force_polygon_cw(geometry:=geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1))'))) → 'Polygon ((-1 -1, 0 2, 4 2, 4 0, -1 -1))'
+
+
+
+
+
+
+
+force_rhr
+Forces a geometry to respect the Right-Hand-Rule, in which the area that is bounded by a polygon is to the right of the boundary. In particular, the exterior ring is oriented in a clockwise direction and the interior rings in a counter-clockwise direction. Due to the inconsistency in the definition of the Right-Hand-Rule in some contexts it is recommended to use the explicit force_polygon_cw function instead.
+
+
+
+
+
+
+Syntax
+force_rhr(geometry)
+
+Arguments
+
+geometry - a geometry. Any non-polygon geometries are returned unchanged.
+
+
+
+Examples
+
+geom_to_wkt(force_rhr(geometry:=geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1))'))) → 'Polygon ((-1 -1, 0 2, 4 2, 4 0, -1 -1))'
+
+
+
+
+
+
+
+geom_from_gml
+Returns a geometry from a GML representation of geometry.
+
+
+
+
+
+
+Syntax
+geom_from_gml(gml)
+
+Arguments
+
+gml - GML representation of a geometry as a string
+
+
+
+Examples
+
+geom_from_gml('<gml:LineString srsName="EPSG:4326"><gml:coordinates>4,4 5,5 6,6</gml:coordinates></gml:LineString>') → a line geometry object
+
+
+
+
+
+
+
+geom_from_wkb
+Returns a geometry created from a Well-Known Binary (WKB) representation.
+
+
+
+
+
+
+Syntax
+geom_from_wkb(binary)
+
+Arguments
+
+binary - Well-Known Binary (WKB) representation of a geometry (as a binary blob)
+
+
+
+Examples
+
+geom_from_wkb( geom_to_wkb( make_point(4,5) ) ) → a point geometry object
+
+
+
+
+
+
+
+geom_from_wkt
+Returns a geometry created from a Well-Known Text (WKT) representation.
+
+
+
+
+
+
+Syntax
+geom_from_wkt(text)
+
+Arguments
+
+text - Well-Known Text (WKT) representation of a geometry
+
+
+
+Examples
+
+geom_from_wkt( 'POINT(4 5)' ) → a geometry object
+
+
+
+
+
+
+
+geom_to_wkb
+Returns the Well-Known Binary (WKB) representation of a geometry
+
+
+
+
+
+
+Syntax
+geom_to_wkb(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkb( @geometry ) → binary blob containing a geometry object
+
+
+
+
+
+
+
+geom_to_wkt
+Returns the Well-Known Text (WKT) representation of the geometry without SRID metadata.
+
+
+
+
+
+
+Syntax
+geom_to_wkt(geometry, [precision=8])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+precision - numeric precision
+
+
+
+Examples
+
+geom_to_wkt( make_point(6, 50) ) → 'POINT(6 50)'
+geom_to_wkt(centroid(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))'))) → 'POINT(0 0.66666667)'
+geom_to_wkt(centroid(geom_from_wkt('Polygon((1 1, 0 0, -1 1, 1 1))')), 2) → 'POINT(0 0.67)'
+
+
+
+
+
+
+
+$geometry
+Returns the geometry of the current feature. Can be used for processing with other functions. WARNING: This function is deprecated. It is recommended to use the replacement @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$geometry
+
+Examples
+
+geom_to_wkt( $geometry ) → 'POINT(6 50)'
+
+
+
+
+
+
+
+geometry
+Returns a feature's geometry.
+
+
+
+
+
+
+Syntax
+geometry(feature)
+
+Arguments
+
+feature - a feature object
+
+
+
+Examples
+
+geometry( @feature ) → the geometry of the current feature. Prefer using @geometry.
+geom_to_wkt( geometry( get_feature_by_id( 'streets', 1 ) ) ) → the geometry in WKT of the feature with the id 1 on the layer "streets", e.g. 'POINT(6 50)'
+intersects( @geometry, geometry( get_feature( 'streets', 'name', 'Main St.' ) ) ) → TRUE if the current feature spatially intersects the 'Main St.' named feature in the "streets" layer
+
+
+
+
+
+
+
+geometry_n
+Returns a specific geometry from a geometry collection, or NULL if the input geometry is not a collection. Also returns a part from a multipart geometry.
+
+
+
+
+
+
+Syntax
+geometry_n(geometry, index)
+
+Arguments
+
+geometry - geometry collection
+index - index of geometry to return, where 1 is the first geometry in the collection
+
+
+
+Examples
+
+geom_to_wkt(geometry_n(geom_from_wkt('GEOMETRYCOLLECTION(POINT(0 1), POINT(0 0), POINT(1 0), POINT(1 1))'),3)) → 'Point (1 0)'
+
+
+
+
+
+
+
+geometry_type
+Returns a string value describing the type of a geometry (Point, Line or Polygon)
+
+
+
+
+
+
+Syntax
+geometry_type(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geometry_type( geom_from_wkt( 'LINESTRING(2 5, 3 6, 4 8)') ) → 'Line'
+geometry_type( geom_from_wkt( 'MULTILINESTRING((2 5, 3 6, 4 8), (1 1, 0 0))') ) → 'Line'
+geometry_type( geom_from_wkt( 'POINT(2 5)') ) → 'Point'
+geometry_type( geom_from_wkt( 'POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1))') ) → 'Polygon'
+
+
+
+
+
+
+
+hausdorff_distance
+Returns the Hausdorff distance between two geometries. This is basically a measure of how similar or dissimilar 2 geometries are, with a lower distance indicating more similar geometries.
+The function can be executed with an optional densify fraction argument. If not specified, an approximation to the standard Hausdorff distance is used. This approximation is exact or close enough for a large subset of useful cases. Examples of these are:
+
+computing distance between Linestrings that are roughly parallel to each other, and roughly equal in length. This occurs in matching linear networks.
+Testing similarity of geometries.
+
+If the default approximate provided by this method is insufficient, specify the optional densify fraction argument. Specifying this argument performs a segment densification before computing the discrete Hausdorff distance. The parameter sets the fraction by which to densify each segment. Each segment will be split into a number of equal-length subsegments, whose fraction of the total length is closest to the given fraction. Decreasing the densify fraction parameter will make the distance returned approach the true Hausdorff distance for the geometries.
+
+
+
+
+
+
+Syntax
+hausdorff_distance(geometry1, geometry2, [densify_fraction])
+[] marks optional arguments
+
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+densify_fraction - densify fraction amount
+
+
+
+Examples
+
+hausdorff_distance( geometry1:= geom_from_wkt('LINESTRING (0 0, 2 1)'),geometry2:=geom_from_wkt('LINESTRING (0 0, 2 0)')) → 2
+hausdorff_distance( geom_from_wkt('LINESTRING (130 0, 0 0, 0 150)'),geom_from_wkt('LINESTRING (10 10, 10 150, 130 10)')) → 14.142135623
+hausdorff_distance( geom_from_wkt('LINESTRING (130 0, 0 0, 0 150)'),geom_from_wkt('LINESTRING (10 10, 10 150, 130 10)'),0.5) → 70.0
+
+
+
+
+
+
+
+inclination
+Returns the inclination measured from the zenith (0) to the nadir (180) on point_a to point_b.
+
+
+
+
+
+
+Syntax
+inclination(point_a, point_b)
+
+Arguments
+
+point_a - point geometry
+point_b - point geometry
+
+
+
+Examples
+
+inclination( make_point( 5, 10, 0 ), make_point( 5, 10, 5 ) ) → 0.0
+inclination( make_point( 5, 10, 0 ), make_point( 5, 10, 0 ) ) → 90.0
+inclination( make_point( 5, 10, 0 ), make_point( 50, 100, 0 ) ) → 90.0
+inclination( make_point( 5, 10, 0 ), make_point( 5, 10, -5 ) ) → 180.0
+
+
+
+
+
+
+
+interior_ring_n
+Returns a specific interior ring from a polygon geometry, or NULL if the geometry is not a polygon.
+
+
+
+
+
+
+Syntax
+interior_ring_n(geometry, index)
+
+Arguments
+
+geometry - polygon geometry
+index - index of interior to return, where 1 is the first interior ring
+
+
+
+Examples
+
+geom_to_wkt(interior_ring_n(geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1),(-0.1 -0.1, 0.4 0, 0.4 0.2, 0 0.2, -0.1 -0.1),(-1 -1, 4 0, 4 2, 0 2, -1 -1))'),1)) → 'LineString (-0.1 -0.1, 0.4 0, 0.4 0.2, 0 0.2, -0.1 -0.1))'
+
+
+
+
+
+
+
+intersection
+Returns a geometry that represents the shared portion of two geometries.
+
+
+
+
+
+
+Syntax
+intersection(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+geom_to_wkt( intersection( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4)' ) ) ) → 'LINESTRING(3 3, 4 4)'
+geom_to_wkt( intersection( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'MULTIPOINT(3.5 3.5, 4 5)' ) ) ) → 'POINT(3.5 3.5)'
+
+
+
+
+
+
+
+intersects
+Tests whether a geometry intersects another. Returns TRUE if the geometries spatially intersect (share any portion of space) and false if they do not.
+
+
+
+
+
+
+Syntax
+intersects(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+intersects( geom_from_wkt( 'POINT(4 4)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+intersects( geom_from_wkt( 'POINT(4 5)' ), geom_from_wkt( 'POINT(5 5)' ) ) → FALSE
+
+
+
+
+
+
+
+intersects_bbox
+Tests whether a geometry's bounding box overlaps another geometry's bounding box. Returns TRUE if the geometries spatially intersect the bounding box defined and false if they do not.
+
+
+
+
+
+
+Syntax
+intersects_bbox(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+intersects_bbox( geom_from_wkt( 'POINT(4 5)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+intersects_bbox( geom_from_wkt( 'POINT(6 5)' ), geom_from_wkt( 'POLYGON((3 3, 4 4, 5 5, 3 3))' ) ) → FALSE
+
+
+
+
+
+
+
+is_closed
+Returns TRUE if a line string is closed (start and end points are coincident), or false if a line string is not closed. If the geometry is not a line string then the result will be NULL.
+
+
+
+
+
+
+Syntax
+is_closed(geometry)
+
+Arguments
+
+geometry - a line string geometry
+
+
+
+Examples
+
+is_closed(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)')) → FALSE
+is_closed(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2, 0 0)')) → TRUE
+
+
+
+
+
+
+
+is_empty
+Returns TRUE if a geometry is empty (without coordinates), false if the geometry is not empty and NULL if there is no geometry. See also is_empty_or_null.
+
+
+
+
+
+
+Syntax
+is_empty(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+is_empty(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)')) → FALSE
+is_empty(geom_from_wkt('LINESTRING EMPTY')) → TRUE
+is_empty(geom_from_wkt('POINT(7 4)')) → FALSE
+is_empty(geom_from_wkt('POINT EMPTY')) → TRUE
+
+
+
+
+
+
+
+is_empty_or_null
+Returns TRUE if a geometry is NULL or empty (without coordinates) or false otherwise. This function is like the expression '@geometry IS NULL or is_empty(@geometry)'
+
+
+
+
+
+
+Syntax
+is_empty_or_null(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+is_empty_or_null(NULL) → TRUE
+is_empty_or_null(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)')) → FALSE
+is_empty_or_null(geom_from_wkt('LINESTRING EMPTY')) → TRUE
+is_empty_or_null(geom_from_wkt('POINT(7 4)')) → FALSE
+is_empty_or_null(geom_from_wkt('POINT EMPTY')) → TRUE
+
+
+
+
+
+
+
+is_multipart
+Returns TRUE if the geometry is of Multi type.
+
+
+
+
+
+
+Syntax
+is_multipart(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+is_multipart(geom_from_wkt('MULTIPOINT ((0 0),(1 1),(2 2))')) → TRUE
+is_multipart(geom_from_wkt('POINT (0 0)')) → FALSE
+
+
+
+
+
+
+
+is_valid
+Returns TRUE if a geometry is valid; if it is well-formed in 2D according to the OGC rules.
+
+
+
+
+
+
+Syntax
+is_valid(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+is_valid(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2, 0 0)')) → TRUE
+is_valid(geom_from_wkt('LINESTRING(0 0)')) → FALSE
+
+
+
+
+
+
+
+$length
+Returns the length of a linestring. If you need the length of a border of a polygon, use $perimeter instead. The length calculated by this function respects both the current project's ellipsoid setting and distance unit settings. For example, if an ellipsoid has been set for the project then the calculated length will be ellipsoidal, and if no ellipsoid is set then the calculated length will be planimetric.
+
+
+
+
+
+
+Syntax
+$length
+
+Examples
+
+$length → 42.4711
+
+
+
+
+
+
+
+length
+Returns the number of characters in a string or the length of a geometry linestring.
+String variant
+Returns the number of characters in a string.
+
+
+
+
+
+
+Syntax
+length(string)
+
+Arguments
+
+string - string to count length of
+
+
+
+Examples
+
+length('hello') → 5
+
+
+
+
+
+Geometry variant
+Calculate the length of a geometry line object. Calculations are always planimetric in the Spatial Reference System (SRS) of this geometry, and the units of the returned length will match the units for the SRS. This differs from the calculations performed by the $length function, which will perform ellipsoidal calculations based on the project's ellipsoid and distance unit settings.
+
+
+
+
+
+
+Syntax
+length(geometry)
+
+Arguments
+
+geometry - line geometry object
+
+
+
+Examples
+
+length(geom_from_wkt('LINESTRING(0 0, 4 0)')) → 4.0
+
+
+
+
+
+
+
+length3D
+Calculates the 3D length of a geometry line object. If the geometry is not a 3D line object, it returns its 2D length. Calculations are always planimetric in the Spatial Reference System (SRS) of this geometry, and the units of the returned length will match the units for the SRS. This differs from the calculations performed by the $length function, which will perform ellipsoidal calculations based on the project's ellipsoid and distance unit settings.
+
+
+
+
+
+
+Syntax
+length3D(geometry)
+
+Arguments
+
+geometry - line geometry object
+
+
+
+Examples
+
+length3D(geom_from_wkt('LINESTRINGZ(0 0 0, 3 0 4)')) → 5.0
+
+
+
+
+
+
+
+line_interpolate_angle
+Returns the angle parallel to the geometry at a specified distance along a linestring geometry. Angles are in degrees clockwise from north.
+
+
+
+
+
+
+Syntax
+line_interpolate_angle(geometry, distance)
+
+Arguments
+
+geometry - a linestring geometry
+distance - distance along line to interpolate angle at
+
+
+
+Examples
+
+line_interpolate_angle(geometry:=geom_from_wkt('LineString(0 0, 10 0)'),distance:=5) → 90.0
+
+
+
+
+
+
+
+line_interpolate_point
+Returns the point interpolated by a specified distance along a linestring geometry.
+
+
+
+
+
+
+Syntax
+line_interpolate_point(geometry, distance)
+
+Arguments
+
+geometry - a linestring geometry
+distance - distance along line to interpolate
+
+
+
+Examples
+
+geom_to_wkt(line_interpolate_point(geometry:=geom_from_wkt('LineString(0 0, 8 0)'), distance:=5)) → 'Point (5 0)'
+geom_to_wkt(line_interpolate_point(geometry:=geom_from_wkt('LineString(0 0, 1 1, 2 0)'), distance:=2.1)) → 'Point (1.48492424 0.51507576)'
+geom_to_wkt(line_interpolate_point(geometry:=geom_from_wkt('LineString(0 0, 1 0)'), distance:=2)) → NULL
+
+
+
+
+
+
+
+Interpolated point at 500m of the beginning of the line
+
+
+
+line_interpolate_point_by_m
+Returns the point interpolated by a matching M value along a linestring geometry.
+
+
+
+
+
+
+Syntax
+line_interpolate_point_by_m(geometry, m, [use_3d_distance=false])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a linestring geometry
+m - an M value
+use_3d_distance - controls whether 2D or 3D distances between vertices should be used during interpolation (this option is only considered for lines with z values)
+
+
+
+Examples
+
+geom_to_wkt(line_interpolate_point_by_m(geom_from_wkt('LineStringM(0 0 0, 10 10 10)'), m:=5)) → 'Point (5 5)'
+
+
+
+
+
+
+
+line_locate_m
+Returns the distance along a linestring corresponding to the first matching interpolated M value.
+
+
+
+
+
+
+Syntax
+line_locate_m(geometry, m, [use_3d_distance=false])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a linestring geometry
+m - an M value
+use_3d_distance - controls whether 2D or 3D distances between vertices should be used during interpolation (this option is only considered for lines with z values)
+
+
+
+Examples
+
+line_locate_m(geometry:=geom_from_wkt('LineStringM(0 0 0, 10 10 10)'),m:=5) → 7.07106
+
+
+
+
+
+
+
+line_locate_point
+Returns the distance along a linestring corresponding to the closest position the linestring comes to a specified point geometry.
+
+
+
+
+
+
+Syntax
+line_locate_point(geometry, point)
+
+Arguments
+
+geometry - a linestring geometry
+point - point geometry to locate closest position on linestring to
+
+
+
+Examples
+
+line_locate_point(geometry:=geom_from_wkt('LineString(0 0, 10 0)'),point:=geom_from_wkt('Point(5 0)')) → 5.0
+
+
+
+
+
+
+
+line_merge
+Returns a LineString or MultiLineString geometry, where any connected LineStrings from the input geometry have been merged into a single linestring. This function will return NULL if passed a geometry which is not a LineString/MultiLineString.
+
+
+
+
+
+
+Syntax
+line_merge(geometry)
+
+Arguments
+
+geometry - a LineString/MultiLineString geometry
+
+
+
+Examples
+
+geom_to_wkt(line_merge(geom_from_wkt('MULTILINESTRING((0 0, 1 1),(1 1, 2 2))'))) → 'LineString(0 0,1 1,2 2)'
+geom_to_wkt(line_merge(geom_from_wkt('MULTILINESTRING((0 0, 1 1),(11 1, 21 2))'))) → 'MultiLineString((0 0, 1 1),(11 1, 21 2)'
+
+
+
+
+
+
+
+line_substring
+Returns the portion of a line (or curve) geometry which falls between the specified start and end distances (measured from the beginning of the line). Z and M values are linearly interpolated from existing values.
+
+
+
+
+
+
+Syntax
+line_substring(geometry, start_distance, end_distance)
+
+Arguments
+
+geometry - a linestring or curve geometry
+start_distance - distance to start of substring
+end_distance - distance to end of substring
+
+
+
+Examples
+
+geom_to_wkt(line_substring(geometry:=geom_from_wkt('LineString(0 0, 10 0)'),start_distance:=2,end_distance:=6)) → 'LineString (2 0,6 0)'
+
+
+
+
+
+
+
+Substring line with starting distance set at 0 meters and the ending distance at 250 meters.
+
+
+
+m
+Returns the m (measure) value of a point geometry.
+
+
+
+
+
+
+Syntax
+m(geometry)
+
+Arguments
+
+geometry - a point geometry
+
+
+
+Examples
+
+m( geom_from_wkt( 'POINTM(2 5 4)' ) ) → 4
+
+
+
+
+
+
+
+m_at
+Retrieves a m coordinate of the geometry, or NULL if the geometry has no m value.
+
+
+
+
+
+
+Syntax
+m_at(geometry, vertex)
+
+Arguments
+
+geometry - geometry object
+vertex - index of the vertex of the geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+m_at(geom_from_wkt('LineStringZM(0 0 0 0, 10 10 0 5, 10 10 0 0)'), 1) → 5
+
+
+
+
+
+
+
+m_max
+Returns the maximum m (measure) value of a geometry.
+
+
+
+
+
+
+Syntax
+m_max(geometry)
+
+Arguments
+
+geometry - a geometry containing m values
+
+
+
+Examples
+
+m_max( make_point_m( 0,0,1 ) ) → 1
+m_max(make_line( make_point_m( 0,0,1 ), make_point_m( -1,-1,2 ), make_point_m( -2,-2,0 ) ) ) → 2
+
+
+
+
+
+
+
+m_min
+Returns the minimum m (measure) value of a geometry.
+
+
+
+
+
+
+Syntax
+m_min(geometry)
+
+Arguments
+
+geometry - a geometry containing m values
+
+
+
+Examples
+
+m_min( make_point_m( 0,0,1 ) ) → 1
+m_min(make_line( make_point_m( 0,0,1 ), make_point_m( -1,-1,2 ), make_point_m( -2,-2,0 ) ) ) → 0
+
+
+
+
+
+
+
+main_angle
+Returns the angle of the long axis (clockwise, in degrees from North) of the oriented minimal bounding rectangle, which completely covers the geometry.
+
+
+
+
+
+
+Syntax
+main_angle(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+main_angle(geom_from_wkt('Polygon ((321577 129614, 321581 129618, 321585 129615, 321581 129610, 321577 129614))')) → 38.66
+
+
+
+
+
+
+
+make_circle
+Creates a circular polygon.
+
+
+
+
+
+
+Syntax
+make_circle(center, radius, [segments=36])
+[] marks optional arguments
+
+
+Arguments
+
+center - center point of the circle
+radius - radius of the circle
+segments - optional argument for polygon segmentation. By default this value is 36
+
+
+
+Examples
+
+geom_to_wkt(make_circle(make_point(10,10), 5, 4)) → 'Polygon ((10 15, 15 10, 10 5, 5 10, 10 15))'
+geom_to_wkt(make_circle(make_point(10,10,5), 5, 4)) → 'PolygonZ ((10 15 5, 15 10 5, 10 5 5, 5 10 5, 10 15 5))'
+geom_to_wkt(make_circle(make_point(10,10,5,30), 5, 4)) → 'PolygonZM ((10 15 5 30, 15 10 5 30, 10 5 5 30, 5 10 5 30, 10 15 5 30))'
+
+
+
+
+
+
+
+make_ellipse
+Creates an elliptical polygon.
+
+
+
+
+
+
+Syntax
+make_ellipse(center, semi_major_axis, semi_minor_axis, azimuth, [segments=36])
+[] marks optional arguments
+
+
+Arguments
+
+center - center point of the ellipse
+semi_major_axis - semi-major axis of the ellipse
+semi_minor_axis - semi-minor axis of the ellipse
+azimuth - orientation of the ellipse
+segments - optional argument for polygon segmentation. By default this value is 36
+
+
+
+Examples
+
+geom_to_wkt(make_ellipse(make_point(10,10), 5, 2, 90, 4)) → 'Polygon ((15 10, 10 8, 5 10, 10 12, 15 10))'
+geom_to_wkt(make_ellipse(make_point(10,10,5), 5, 2, 90, 4)) → 'PolygonZ ((15 10 5, 10 8 5, 5 10 5, 10 12 5, 15 10 5))'
+geom_to_wkt(make_ellipse(make_point(10,10,5,30), 5, 2, 90, 4)) → 'PolygonZM ((15 10 5 30, 10 8 5 30, 5 10 5 30, 10 12 5 30, 15 10 5 30))'
+
+
+
+
+
+
+
+make_line
+Creates a line geometry from a series of point geometries.
+List of arguments variant
+Line vertices are specified as separate arguments to the function.
+
+
+
+
+
+
+Syntax
+make_line(point1, point2, ...)
+
+Arguments
+
+point - a point geometry (or array of points)
+
+
+
+Examples
+
+geom_to_wkt(make_line(make_point(2,4),make_point(3,5))) → 'LineString (2 4, 3 5)'
+geom_to_wkt(make_line(make_point(2,4),make_point(3,5),make_point(9,7))) → 'LineString (2 4, 3 5, 9 7)'
+
+
+
+
+
+Array variant
+Line vertices are specified as an array of points.
+
+
+
+
+
+
+Syntax
+make_line(array)
+
+Arguments
+
+array - array of points
+
+
+
+Examples
+
+geom_to_wkt(make_line(array(make_point(2,4),make_point(3,5),make_point(9,7)))) → 'LineString (2 4, 3 5, 9 7)'
+
+
+
+
+
+
+
+make_point
+Creates a point geometry from an x and y (and optional z and m) value.
+
+
+
+
+
+
+Syntax
+make_point(x, y, [z], [m])
+[] marks optional arguments
+
+
+Arguments
+
+x - x coordinate of point
+y - y coordinate of point
+z - optional z coordinate of point
+m - optional m value of point
+
+
+
+Examples
+
+geom_to_wkt(make_point(2,4)) → 'Point (2 4)'
+geom_to_wkt(make_point(2,4,6)) → 'PointZ (2 4 6)'
+geom_to_wkt(make_point(2,4,6,8)) → 'PointZM (2 4 6 8)'
+
+
+
+
+
+
+
+make_point_m
+Creates a point geometry from an x, y coordinate and m value.
+
+
+
+
+
+
+Syntax
+make_point_m(x, y, m)
+
+Arguments
+
+x - x coordinate of point
+y - y coordinate of point
+m - m value of point
+
+
+
+Examples
+
+geom_to_wkt(make_point_m(2,4,6)) → 'PointM (2 4 6)'
+
+
+
+
+
+
+
+make_polygon
+Creates a polygon geometry from an outer ring and optional series of inner ring geometries.
+
+
+
+
+
+
+Syntax
+make_polygon(outerRing, [innerRing1], [innerRing2], ...)
+[] marks optional arguments
+
+
+Arguments
+
+outerRing - closed line geometry for polygon's outer ring
+innerRing - optional closed line geometry for inner ring
+
+
+
+Examples
+
+geom_to_wkt(make_polygon(geom_from_wkt('LINESTRING( 0 0, 0 1, 1 1, 1 0, 0 0 )'))) → 'Polygon ((0 0, 0 1, 1 1, 1 0, 0 0))'
+geom_to_wkt(make_polygon(geom_from_wkt('LINESTRING( 0 0, 0 1, 1 1, 1 0, 0 0 )'),geom_from_wkt('LINESTRING( 0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2 0.1, 0.1 0.1 )'),geom_from_wkt('LINESTRING( 0.8 0.8, 0.8 0.9, 0.9 0.9, 0.9 0.8, 0.8 0.8 )'))) → 'Polygon ((0 0, 0 1, 1 1, 1 0, 0 0),(0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2 0.1, 0.1 0.1),(0.8 0.8, 0.8 0.9, 0.9 0.9, 0.9 0.8, 0.8 0.8))'
+
+
+
+
+
+
+
+make_rectangle_3points
+Creates a rectangle from 3 points.
+
+
+
+
+
+
+Syntax
+make_rectangle_3points(point1, point2, point3, [option=0])
+[] marks optional arguments
+
+
+Arguments
+
+point1 - First point.
+point2 - Second point.
+point3 - Third point.
+option - An optional argument to construct the rectangle. By default this value is 0. Value can be 0 (distance) or 1 (projected). Option distance: Second distance is equal to the distance between 2nd and 3rd point. Option projected: Second distance is equal to the distance of the perpendicular projection of the 3rd point on the segment or its extension.
+
+
+
+Examples
+
+geom_to_wkt(make_rectangle_3points(make_point(0, 0), make_point(0,5), make_point(5, 5), 0)) → 'Polygon ((0 0, 0 5, 5 5, 5 0, 0 0))'
+geom_to_wkt(make_rectangle_3points(make_point(0, 0), make_point(0,5), make_point(5, 3), 1)) → 'Polygon ((0 0, 0 5, 5 5, 5 0, 0 0))'
+
+
+
+
+
+
+
+make_regular_polygon
+Creates a regular polygon.
+
+
+
+
+
+
+Syntax
+make_regular_polygon(center, radius, number_sides, [circle=0])
+[] marks optional arguments
+
+
+Arguments
+
+center - center of the regular polygon
+radius - second point. The first if the regular polygon is inscribed. The midpoint of the first side if the regular polygon is circumscribed.
+number_sides - Number of sides/edges of the regular polygon
+circle - Optional argument to construct the regular polygon. By default this value is 0. Value can be 0 (inscribed) or 1 (circumscribed)
+
+
+
+Examples
+
+geom_to_wkt(make_regular_polygon(make_point(0,0), make_point(0,5), 5)) → 'Polygon ((0 5, 4.76 1.55, 2.94 -4.05, -2.94 -4.05, -4.76 1.55, 0 5))'
+geom_to_wkt(make_regular_polygon(make_point(0,0), project(make_point(0,0), 4.0451, radians(36)), 5)) → 'Polygon ((0 5, 4.76 1.55, 2.94 -4.05, -2.94 -4.05, -4.76 1.55, 0 5))'
+
+
+
+
+
+
+
+make_square
+Creates a square from a diagonal.
+
+
+
+
+
+
+Syntax
+make_square(point1, point2)
+
+Arguments
+
+point1 - First point of the diagonal
+point2 - Last point of the diagonal
+
+
+
+Examples
+
+geom_to_wkt(make_square( make_point(0,0), make_point(5,5))) → 'Polygon ((0 0, -0 5, 5 5, 5 0, 0 0))'
+geom_to_wkt(make_square( make_point(5,0), make_point(5,5))) → 'Polygon ((5 0, 2.5 2.5, 5 5, 7.5 2.5, 5 0))'
+
+
+
+
+
+
+
+make_triangle
+Creates a triangle polygon.
+
+
+
+
+
+
+Syntax
+make_triangle(point1, point2, point3)
+
+Arguments
+
+point1 - first point of the triangle
+point2 - second point of the triangle
+point3 - third point of the triangle
+
+
+
+Examples
+
+geom_to_wkt(make_triangle(make_point(0,0), make_point(5,5), make_point(0,10))) → 'Triangle ((0 0, 5 5, 0 10, 0 0))'
+geom_to_wkt(boundary(make_triangle(make_point(0,0), make_point(5,5), make_point(0,10)))) → 'LineString (0 0, 5 5, 0 10, 0 0)'
+
+
+
+
+
+
+
+make_valid
+Returns a valid geometry or an empty geometry if the geometry could not be made valid.
+
+
+
+
+
+
+Syntax
+make_valid(geometry, [method=structure], [keep_collapsed=false])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+method - repair algorithm. May be either 'structure' or 'linework'. The 'linework' option combines all rings into a set of noded lines and then extracts valid polygons from that linework. The 'structure' method first makes all rings valid and then merges shells and subtracts holes from shells to generate valid result. Assumes that holes and shells are correctly categorized.
+keep_collapsed - if set to true, then components that have collapsed into a lower dimensionality will be kept. For example, a ring collapsing to a line, or a line collapsing to a point.
+
+
+
+Examples
+
+geom_to_wkt(make_valid(geom_from_wkt('POLYGON((3 2, 4 1, 5 8, 3 2, 4 2))'))) → 'Polygon ((3 2, 5 8, 4 1, 3 2))'
+geom_to_wkt(make_valid(geom_from_wkt('POLYGON((3 2, 4 1, 5 8, 3 2, 4 2))'), 'linework')) → 'GeometryCollection (Polygon ((5 8, 4 1, 3 2, 5 8)),LineString (3 2, 4 2))'
+geom_to_wkt(make_valid(geom_from_wkt('POLYGON((3 2, 4 1, 5 8))'), method:='linework')) → 'Polygon ((3 2, 4 1, 5 8, 3 2))'
+make_valid(geom_from_wkt('LINESTRING(0 0)')) → An empty geometry
+
+
+
+
+
+
+
+minimal_circle
+Returns the minimal enclosing circle of a geometry. It represents the minimum circle that encloses all geometries within the set.
+
+
+
+
+
+
+Syntax
+minimal_circle(geometry, [segments=36])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+segments - optional argument for polygon segmentation. By default this value is 36
+
+
+
+Examples
+
+geom_to_wkt( minimal_circle( geom_from_wkt( 'LINESTRING(0 5, 0 -5, 2 1)' ), 4 ) ) → 'Polygon ((0 5, 5 -0, -0 -5, -5 0, 0 5))'
+geom_to_wkt( minimal_circle( geom_from_wkt( 'MULTIPOINT(1 2, 3 4, 3 2)' ), 4 ) ) → 'Polygon ((3 4, 3 2, 1 2, 1 4, 3 4))'
+
+
+
+
+
+
+
+Minimal enclosing circle of each feature
+
+
+
+nodes_to_points
+Returns a multipoint geometry consisting of every node in the input geometry.
+
+
+
+
+
+
+Syntax
+nodes_to_points(geometry, [ignore_closing_nodes=false])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - geometry object
+ignore_closing_nodes - optional argument specifying whether to include duplicate nodes which close lines or polygons rings. Defaults to false, set to true to avoid including these duplicate nodes in the output collection.
+
+
+
+Examples
+
+geom_to_wkt(nodes_to_points(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)'))) → 'MultiPoint ((0 0),(1 1),(2 2))'
+geom_to_wkt(nodes_to_points(geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1))'),true)) → 'MultiPoint ((-1 -1),(4 0),(4 2),(0 2))'
+
+
+
+
+
+
+
+Multi-point feature extracted from vertices
+
+
+
+num_geometries
+Returns the number of geometries in a geometry collection, or the number of parts in a multi-part geometry. The function returns NULL if the input geometry is not a collection.
+
+
+
+
+
+
+Syntax
+num_geometries(geometry)
+
+Arguments
+
+geometry - geometry collection or multi-part geometry
+
+
+
+Examples
+
+num_geometries(geom_from_wkt('GEOMETRYCOLLECTION(POINT(0 1), POINT(0 0), POINT(1 0), POINT(1 1))')) → 4
+num_geometries(geom_from_wkt('MULTIPOINT((0 1), (0 0), (1 0))')) → 3
+
+
+
+
+
+
+
+num_interior_rings
+Returns the number of interior rings in a polygon or geometry collection, or NULL if the input geometry is not a polygon or collection.
+
+
+
+
+
+
+Syntax
+num_interior_rings(geometry)
+
+Arguments
+
+geometry - input geometry
+
+
+
+Examples
+
+num_interior_rings(geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1),(-0.1 -0.1, 0.4 0, 0.4 0.2, 0 0.2, -0.1 -0.1))')) → 1
+
+
+
+
+
+
+
+num_points
+Returns the number of vertices in a geometry.
+
+
+
+
+
+
+Syntax
+num_points(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+num_points(@geometry) → number of vertices in the current feature's geometry
+
+
+
+
+
+
+
+num_rings
+Returns the number of rings (including exterior rings) in a polygon or geometry collection, or NULL if the input geometry is not a polygon or collection.
+
+
+
+
+
+
+Syntax
+num_rings(geometry)
+
+Arguments
+
+geometry - input geometry
+
+
+
+Examples
+
+num_rings(geom_from_wkt('POLYGON((-1 -1, 4 0, 4 2, 0 2, -1 -1),(-0.1 -0.1, 0.4 0, 0.4 0.2, 0 0.2, -0.1 -0.1))')) → 2
+
+
+
+
+
+
+
+offset_curve
+Returns a geometry formed by offsetting a linestring geometry to the side. Distances are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+offset_curve(geometry, distance, [segments=8], [join=1], [miter_limit=2.0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a (multi)linestring geometry
+distance - offset distance. Positive values will be buffered to the left of lines, negative values to the right
+segments - number of segments to use to represent a quarter circle when a round join style is used. A larger number results in a smoother line with more nodes.
+join - join style for corners, where 1 = round, 2 = miter and 3 = bevel
+miter_limit - limit on the miter ratio used for very sharp corners (when using miter joins only)
+
+
+
+Examples
+
+offset_curve(@geometry, 10.5) → line offset to the left by 10.5 units
+offset_curve(@geometry, -10.5) → line offset to the right by 10.5 units
+offset_curve(@geometry, 10.5, segments:=16, join:=1) → line offset to the left by 10.5 units, using more segments to result in a smoother curve
+offset_curve(@geometry, 10.5, join:=3) → line offset to the left by 10.5 units, using a beveled join
+
+
+
+
+
+
+
+In blue the source layer, in red the offset one
+
+
+
+order_parts
+Orders the parts of a MultiGeometry by a given criteria
+
+
+
+
+
+
+Syntax
+order_parts(geometry, orderby, [ascending=true])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a multi-type geometry
+orderby - an expression string defining the order criteria
+ascending - boolean, True for ascending, False for descending
+
+
+
+Examples
+
+geom_to_wkt(order_parts(geom_from_wkt('MultiPolygon (((1 1, 5 1, 5 5, 1 5, 1 1)),((1 1, 9 1, 9 9, 1 9, 1 1)))'), 'area(@geometry)', False)) → 'MultiPolygon (((1 1, 9 1, 9 9, 1 9, 1 1)),((1 1, 5 1, 5 5, 1 5, 1 1)))'
+geom_to_wkt(order_parts(geom_from_wkt('LineString(1 2, 3 2, 4 3)'), '1', True)) → 'LineString(1 2, 3 2, 4 3)'
+
+
+
+
+
+
+
+oriented_bbox
+Returns a geometry which represents the minimal oriented bounding box of an input geometry.
+
+
+
+
+
+
+Syntax
+oriented_bbox(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt( oriented_bbox( geom_from_wkt( 'MULTIPOINT(1 2, 3 4, 3 2)' ) ) ) → 'Polygon ((3 2, 3 4, 1 4, 1 2, 3 2))'
+
+
+
+
+
+
+
+Oriented minimum bounding box
+
+
+
+overlaps
+Tests whether a geometry overlaps another. Returns TRUE if the geometries share space, are of the same dimension, but are not completely contained by each other.
+
+
+
+
+
+
+Syntax
+overlaps(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+overlaps( geom_from_wkt( 'LINESTRING(3 5, 4 4, 5 5, 5 3)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+overlaps( geom_from_wkt( 'LINESTRING(0 0, 1 1)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → FALSE
+
+
+
+
+
+
+
+overlay_contains
+Returns whether the current feature spatially contains at least one feature from a target layer, or an array of expression-based results for the features in the target layer contained in the current feature.
+Read more on the underlying GEOS "Contains" predicate, as described in PostGIS ST_Contains function.
+
+
+
+
+
+
+Syntax
+overlay_contains(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_contains('regions') → TRUE if the current feature spatially contains a region
+overlay_contains('regions', filter:= population > 10000) → TRUE if the current feature spatially contains a region with a population greater than 10000
+overlay_contains('regions', name) → an array of names, for the regions contained in the current feature
+array_to_string(overlay_contains('regions', name)) → a string as a comma separated list of names, for the regions contained in the current feature
+array_sort(overlay_contains(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions contained in the current feature and with a population greater than 10000
+overlay_contains(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions contained in the current feature
+
+
+
+
+
+
+
+overlay_crosses
+Returns whether the current feature spatially crosses at least one feature from a target layer, or an array of expression-based results for the features in the target layer crossed by the current feature.
+Read more on the underlying GEOS "Crosses" predicate, as described in PostGIS ST_Crosses function.
+
+
+
+
+
+
+Syntax
+overlay_crosses(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_crosses('regions') → TRUE if the current feature spatially crosses a region
+overlay_crosses('regions', filter:= population > 10000) → TRUE if the current feature spatially crosses a region with a population greater than 10000
+overlay_crosses('regions', name) → an array of names, for the regions crossed by the current feature
+array_to_string(overlay_crosses('regions', name)) → a string as a comma separated list of names, for the regions crossed by the current feature
+array_sort(overlay_crosses(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions crossed by the current feature and with a population greater than 10000
+overlay_crosses(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions crossed by the current feature
+
+
+
+
+
+
+
+overlay_disjoint
+Returns whether the current feature is spatially disjoint from all the features of a target layer, or an array of expression-based results for the features in the target layer that are disjoint from the current feature.
+Read more on the underlying GEOS "Disjoint" predicate, as described in PostGIS ST_Disjoint function.
+
+
+
+
+
+
+Syntax
+overlay_disjoint(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_disjoint('regions') → TRUE if the current feature is spatially disjoint from all the regions
+overlay_disjoint('regions', filter:= population > 10000) → TRUE if the current feature is spatially disjoint from all the regions with a population greater than 10000
+overlay_disjoint('regions', name) → an array of names, for the regions spatially disjoint from the current feature
+array_to_string(overlay_disjoint('regions', name)) → a string as a comma separated list of names, for the regions spatially disjoint from the current feature
+array_sort(overlay_disjoint(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions spatially disjoint from the current feature and with a population greater than 10000
+overlay_disjoint(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions spatially disjoint from the current feature
+
+
+
+
+
+
+
+overlay_equals
+Returns whether the current feature spatially equals to at least one feature from a target layer, or an array of expression-based results for the features in the target layer that are spatially equal to the current feature.
+Read more on the underlying GEOS "Equals" predicate, as described in PostGIS ST_Equals function.
+
+
+
+
+
+
+Syntax
+overlay_equals(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_equals('regions') → TRUE if the current feature is spatially equal to a region
+overlay_equals('regions', filter:= population > 10000) → TRUE if the current feature is spatially equal to a region with a population greater than 10000
+overlay_equals('regions', name) → an array of names, for the regions spatially equal to the current feature
+array_to_string(overlay_equals('regions', name)) → a string as a comma separated list of names, for the regions spatially equal to the current feature
+array_sort(overlay_equals(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions spatially equal to the current feature and with a population greater than 10000
+overlay_equals(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions spatially equal to the current feature
+
+
+
+
+
+
+
+overlay_intersects
+Returns whether the current feature spatially intersects at least one feature from a target layer, or an array of expression-based results for the features in the target layer intersected by the current feature.
+Read more on the underlying GEOS "Intersects" predicate, as described in PostGIS ST_Intersects function.
+
+
+
+
+
+
+Syntax
+overlay_intersects(layer, [expression], [filter], [limit], [cache=false], [min_overlap], [min_inscribed_circle_radius], [return_details], [sort_by_intersection_size])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+min_overlap - defines an optional exclusion filter:
+
+for polygons, a minimum area in current feature squared units for the intersection. If the intersection results in multiple polygons the intersection will be returned if at least one of the polygons has an area greater or equal to the value
+for lines, a minimum length in current feature units. If the intersection results in multiple lines the intersection will be returned if at least one of the lines has a length greater or equal to the value.
+
+
+min_inscribed_circle_radius - defines an optional exclusion filter (for polygons only): minimum radius in current feature units for the maximum inscribed circle of the intersection. If the intersection results in multiple polygons the intersection will be returned if at least one of the polygons has a radius for the maximum inscribed circle greater or equal to the value.
+Read more on the underlying GEOS predicate, as described in PostGIS ST_MaximumInscribedCircle function.
+This argument requires GEOS >= 3.9.
+
+return_details - Set this to true to return a list of maps containing (key names in quotes) the feature 'id', the expression 'result' and the 'overlap' value (of the largest element in case of multipart). The 'radius' of the maximum inscribed circle is also returned when the target layer is a polygon. Only valid when used with the expression parameter
+
+sort_by_intersection_size - only valid when used with an expression, set this to 'des' to return the results ordered by the overlap value in descending order or set this to 'asc' for ascending order.
+
+
+
+
+Examples
+
+overlay_intersects('regions') → TRUE if the current feature spatially intersects a region
+overlay_intersects('regions', filter:= population > 10000) → TRUE if the current feature spatially intersects a region with a population greater than 10000
+overlay_intersects('regions', name) → an array of names, for the regions intersected by the current feature
+array_to_string(overlay_intersects('regions', name)) → a string as a comma separated list of names, for the regions intersected by the current feature
+array_sort(overlay_intersects(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions intersected by the current feature and with a population greater than 10000
+overlay_intersects(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions intersected by the current feature
+overlay_intersects(layer:='regions', min_overlap:=0.54) → TRUE if the current feature spatially intersects a region and the intersection area (of at least one of the parts in case of multipolygons) is greater or equal to 0.54
+overlay_intersects(layer:='regions', min_inscribed_circle_radius:=0.54) → TRUE if the current feature spatially intersects a region and the intersection area maximum inscribed circle's radius (of at least one of the parts in case of multipart) is greater or equal to 0.54
+overlay_intersects(layer:='regions', expression:= geom_to_wkt(@geometry), return_details:=true) → an array of maps containing 'id', 'result', 'overlap' and 'radius'
+overlay_intersects(layer:='regions', expression:= geom_to_wkt(@geometry), sort_by_intersection_size:='des') → an array of geometries (in WKT) ordered by the overlap value in descending order
+
+
+
+
+
+
+
+overlay_nearest
+Returns whether the current feature has feature(s) from a target layer within a given distance, or an array of expression-based results for the features in the target layer within a distance from the current feature.
+Note: This function can be slow and consume a lot of memory for large layers.
+
+
+
+
+
+
+Syntax
+overlay_nearest(layer, [expression], [filter], [limit=1], [max_distance], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the target layer
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features in the target layer will be used.
+limit - an optional integer to limit the number of matching features. If not set, only the nearest feature will be returned. If set to -1, returns all the matching features.
+max_distance - an optional distance to limit the search of matching features. If not set, all the features in the target layer will be used.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_nearest('airports') → TRUE if the "airports" layer has at least one feature
+overlay_nearest('airports', max_distance:= 5000) → TRUE if there is an airport within a distance of 5000 map units from the current feature
+overlay_nearest('airports', name) → the name of the closest airport to the current feature, as an array
+array_to_string(overlay_nearest('airports', name)) → the name of the closest airport to the current feature, as a string
+overlay_nearest(layer:='airports', expression:= name, max_distance:= 5000) → the name of the closest airport within a distance of 5000 map units from the current feature, as an array
+overlay_nearest(layer:='airports', expression:="name", filter:= "Use"='Civilian', limit:=3) → an array of names, for up to the three closest civilian airports ordered by distance
+overlay_nearest(layer:='airports', expression:="name", limit:= -1, max_distance:= 5000) → an array of names, for all the airports within a distance of 5000 map units from the current feature, ordered by distance
+
+
+
+
+
+
+
+overlay_touches
+Returns whether the current feature spatially touches at least one feature from a target layer, or an array of expression-based results for the features in the target layer touched by the current feature.
+Read more on the underlying GEOS "Touches" predicate, as described in PostGIS ST_Touches function.
+
+
+
+
+
+
+Syntax
+overlay_touches(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_touches('regions') → TRUE if the current feature spatially touches a region
+overlay_touches('regions', filter:= population > 10000) → TRUE if the current feature spatially touches a region with a population greater than 10000
+overlay_touches('regions', name) → an array of names, for the regions touched by the current feature
+string_to_array(overlay_touches('regions', name)) → a string as a comma separated list of names, for the regions touched by the current feature
+array_sort(overlay_touches(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions touched by the current feature and with a population greater than 10000
+overlay_touches(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions touched by the current feature
+
+
+
+
+
+
+
+overlay_within
+Returns whether the current feature is spatially within at least one feature from a target layer, or an array of expression-based results for the features in the target layer that contain the current feature.
+Read more on the underlying GEOS "Within" predicate, as described in PostGIS ST_Within function.
+
+
+
+
+
+
+Syntax
+overlay_within(layer, [expression], [filter], [limit], [cache=false])
+[] marks optional arguments
+
+
+Arguments
+
+layer - the layer whose overlay is checked
+expression - an optional expression to evaluate on the features from the target layer. If not set, the function will just return a boolean indicating whether there is at least one match.
+filter - an optional expression to filter the target features to check. If not set, all the features will be checked.
+limit - an optional integer to limit the number of matching features. If not set, all the matching features will be returned.
+cache - set this to true to build a local spatial index (most of the time, this is unwanted, unless you are working with a particularly slow data provider)
+
+
+
+Examples
+
+overlay_within('regions') → TRUE if the current feature is spatially within a region
+overlay_within('regions', filter:= population > 10000) → TRUE if the current feature is spatially within a region with a population greater than 10000
+overlay_within('regions', name) → an array of names, for the regions containing the current feature
+array_to_string(overlay_within('regions', name)) → a string as a comma separated list of names, for the regions containing the current feature
+array_sort(overlay_within(layer:='regions', expression:="name", filter:= population > 10000)) → an ordered array of names, for the regions containing the current feature and with a population greater than 10000
+overlay_within(layer:='regions', expression:= geom_to_wkt(@geometry), limit:=2) → an array of geometries (in WKT), for up to two regions containing the current feature
+
+
+
+
+
+
+
+$perimeter
+Returns the perimeter length of the current feature. The perimeter calculated by this function respects both the current project's ellipsoid setting and distance unit settings. For example, if an ellipsoid has been set for the project then the calculated perimeter will be ellipsoidal, and if no ellipsoid is set then the calculated perimeter will be planimetric.
+
+
+
+
+
+
+Syntax
+$perimeter
+
+Examples
+
+$perimeter → 42
+
+
+
+
+
+
+
+perimeter
+Returns the perimeter of a geometry polygon object. Calculations are always planimetric in the Spatial Reference System (SRS) of this geometry, and the units of the returned perimeter will match the units for the SRS. This differs from the calculations performed by the $perimeter function, which will perform ellipsoidal calculations based on the project's ellipsoid and distance unit settings.
+
+
+
+
+
+
+Syntax
+perimeter(geometry)
+
+Arguments
+
+geometry - polygon geometry object
+
+
+
+Examples
+
+perimeter(geom_from_wkt('POLYGON((0 0, 4 0, 4 2, 0 2, 0 0))')) → 12.0
+
+
+
+
+
+
+
+point_n
+Returns a specific node from a geometry.
+
+
+
+
+
+
+Syntax
+point_n(geometry, index)
+
+Arguments
+
+geometry - geometry object
+index - index of node to return, where 1 is the first node; if the value is negative, the selected vertex index will be its total count minus the absolute value
+
+
+
+Examples
+
+geom_to_wkt(point_n(geom_from_wkt('POLYGON((0 0, 4 0, 4 2, 0 2, 0 0))'),2)) → 'Point (4 0)'
+
+
+
+
+
+
+
+point_on_surface
+Returns a point guaranteed to lie on the surface of a geometry.
+
+
+
+
+
+
+Syntax
+point_on_surface(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+point_on_surface(@geometry) → a point geometry
+
+
+
+
+
+
+
+pole_of_inaccessibility
+Calculates the approximate pole of inaccessibility for a surface, which is the most distant internal point from the boundary of the surface. This function uses the 'polylabel' algorithm (Vladimir Agafonkin, 2016), which is an iterative approach guaranteed to find the true pole of inaccessibility within a specified tolerance. More precise tolerances require more iterations and will take longer to calculate.
+
+
+
+
+
+
+Syntax
+pole_of_inaccessibility(geometry, tolerance)
+
+Arguments
+
+geometry - a geometry
+tolerance - maximum distance between the returned point and the true pole location
+
+
+
+Examples
+
+geom_to_wkt(pole_of_inaccessibility( geom_from_wkt('POLYGON((0 1, 0 9, 3 10, 3 3, 10 3, 10 1, 0 1))'), 0.1)) → 'Point(1.546875 2.546875)'
+
+
+
+
+
+
+
+Pole of inaccessibility
+
+
+
+project
+Returns a point projected from a start point using a distance, a bearing (azimuth) and an elevation in radians.
+
+
+
+
+
+
+Syntax
+project(point, distance, azimuth, [elevation])
+[] marks optional arguments
+
+
+Arguments
+
+point - start point
+distance - distance to project
+azimuth - azimuth in radians clockwise, where 0 corresponds to north
+elevation - angle of inclination in radians
+
+
+
+Examples
+
+geom_to_wkt(project(make_point(1, 2), 3, radians(270))) → 'Point(-2, 2)'
+
+
+
+
+
+
+
+relate
+Tests the Dimensional Extended 9 Intersection Model (DE-9IM) representation of the relationship between two geometries.
+Relationship variant
+Returns the Dimensional Extended 9 Intersection Model (DE-9IM) representation of the relationship between two geometries.
+
+
+
+
+
+
+Syntax
+relate(geometry, geometry)
+
+Arguments
+
+geometry - a geometry
+geometry - a geometry
+
+
+
+Examples
+
+relate( geom_from_wkt( 'LINESTRING(40 40,120 120)' ), geom_from_wkt( 'LINESTRING(40 40,60 120)' ) ) → 'FF1F00102'
+
+
+
+
+
+Pattern match variant
+Tests whether the DE-9IM relationship between two geometries matches a specified pattern.
+
+
+
+
+
+
+Syntax
+relate(geometry, geometry, pattern)
+
+Arguments
+
+geometry - a geometry
+geometry - a geometry
+pattern - DE-9IM pattern to match
+
+
+
+Examples
+
+relate( geom_from_wkt( 'LINESTRING(40 40,120 120)' ), geom_from_wkt( 'LINESTRING(40 40,60 120)' ), '**1F001**' ) → TRUE
+
+
+
+
+
+
+
+reverse
+Reverses the direction of a line string by reversing the order of its vertices.
+
+
+
+
+
+
+Syntax
+reverse(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+geom_to_wkt(reverse(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)'))) → 'LINESTRING(2 2, 1 1, 0 0)'
+
+
+
+
+
+
+
+Reversing line direction
+
+
+
+rotate
+Returns a rotated version of a geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+rotate(geometry, rotation, [center=NULL], [per_part=false])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+rotation - clockwise rotation in degrees
+center - rotation center point. If not specified, the center of the geometry's bounding box is used.
+per_part - apply rotation per part. If true, then rotation will apply around the center of each part's bounding box when the input geometry is multipart and an explicit rotation center point is not specified.
+
+
+
+Examples
+
+rotate(@geometry, 45, make_point(4, 5)) → geometry rotated 45 degrees clockwise around the (4, 5) point
+rotate(@geometry, 45) → geometry rotated 45 degrees clockwise around the center of its bounding box
+
+
+
+
+
+
+
+Rotating features
+
+
+
+roundness
+Calculates how close a polygon shape is to a circle. The function Returns TRUE when the polygon shape is a perfect circle and 0 when it is completely flat.
+
+
+
+
+
+
+Syntax
+roundness(geometry)
+
+Arguments
+
+geometry - a polygon
+
+
+
+Examples
+
+round(roundness(geom_from_wkt('POLYGON(( 0 0, 0 1, 1 1, 1 0, 0 0))')), 3) → 0.785
+round(roundness(geom_from_wkt('POLYGON(( 0 0, 0 0.1, 1 0.1, 1 0, 0 0))')), 3) → 0.260
+
+
+
+
+
+
+
+scale
+Returns a scaled version of a geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+scale(geometry, x_scale, y_scale, [center])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+x_scale - x-axis scaling factor
+y_scale - y-axis scaling factor
+center - scaling center point. If not specified, the center of the geometry's bounding box is used.
+
+
+
+Examples
+
+scale(@geometry, 2, 0.5, make_point(4, 5)) → geometry scaled twice horizontally and halved vertically, around the (4, 5) point
+scale(@geometry, 2, 0.5) → geometry twice horizontally and halved vertically, around the center of its bounding box
+
+
+
+
+
+
+
+segments_to_lines
+Returns a multi line geometry consisting of a line for every segment in the input geometry.
+
+
+
+
+
+
+Syntax
+segments_to_lines(geometry)
+
+Arguments
+
+geometry - geometry object
+
+
+
+Examples
+
+geom_to_wkt(segments_to_lines(geom_from_wkt('LINESTRING(0 0, 1 1, 2 2)'))) → 'MultiLineString ((0 0, 1 1),(1 1, 2 2))'
+
+
+
+
+
+
+
+shared_paths
+Returns a collection containing paths shared by the two input geometries. Those going in the same direction are in the first element of the collection, those going in the opposite direction are in the second element. The paths themselves are given in the direction of the first geometry.
+
+
+
+
+
+
+Syntax
+shared_paths(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a LineString/MultiLineString geometry
+geometry2 - a LineString/MultiLineString geometry
+
+
+
+Examples
+
+geom_to_wkt(shared_paths(geom_from_wkt('MULTILINESTRING((26 125,26 200,126 200,126 125,26 125),(51 150,101 150,76 175,51 150)))'),geom_from_wkt('LINESTRING(151 100,126 156.25,126 125,90 161, 76 175)'))) → 'GeometryCollection (MultiLineString ((126 156.25, 126 125),(101 150, 90 161),(90 161, 76 175)),MultiLineString EMPTY)'
+geom_to_wkt(shared_paths(geom_from_wkt('LINESTRING(76 175,90 161,126 125,126 156.25,151 100)'),geom_from_wkt('MULTILINESTRING((26 125,26 200,126 200,126 125,26 125),(51 150,101 150,76 175,51 150))'))) → 'GeometryCollection (MultiLineString EMPTY,MultiLineString ((76 175, 90 161),(90 161, 101 150),(126 125, 126 156.25)))'
+
+
+
+
+
+
+
+shortest_line
+Returns the shortest line joining geometry1 to geometry2. The resultant line will start at geometry1 and end at geometry2.
+
+
+
+
+
+
+Syntax
+shortest_line(geometry1, geometry2)
+
+Arguments
+
+geometry1 - geometry to find shortest line from
+geometry2 - geometry to find shortest line to
+
+
+
+Examples
+
+geom_to_wkt(shortest_line(geom_from_wkt('LINESTRING (20 80, 98 190, 110 180, 50 75 )'),geom_from_wkt('POINT(100 100)'))) → 'LineString(73.0769 115.384, 100 100)'
+
+
+
+
+
+
+
+simplify
+Simplifies a geometry by removing nodes using a distance based threshold (ie, the Douglas Peucker algorithm). The algorithm preserves large deviations in geometries and reduces the number of vertices in nearly straight segments.
+
+
+
+
+
+
+Syntax
+simplify(geometry, tolerance)
+
+Arguments
+
+geometry - a geometry
+tolerance - maximum deviation from straight segments for points to be removed
+
+
+
+Examples
+
+geom_to_wkt(simplify(geometry:=geom_from_wkt('LineString(0 0, 5 0.1, 10 0)'),tolerance:=5)) → 'LineString(0 0, 10 0)'
+
+
+
+
+
+
+
+From left to right, source layer and increasing simplification tolerances
+
+
+
+simplify_vw
+Simplifies a geometry by removing nodes using an area based threshold (ie, the Visvalingam-Whyatt algorithm). The algorithm removes vertices which create small areas in geometries, e.g., narrow spikes or nearly straight segments.
+
+
+
+
+
+
+Syntax
+simplify_vw(geometry, tolerance)
+
+Arguments
+
+geometry - a geometry
+tolerance - a measure of the maximum area created by a node for the node to be removed
+
+
+
+Examples
+
+geom_to_wkt(simplify_vw(geometry:=geom_from_wkt('LineString(0 0, 5 0, 5.01 10, 5.02 0, 10 0)'),tolerance:=5)) → 'LineString(0 0, 10 0)'
+
+
+
+
+
+
+
+single_sided_buffer
+Returns a geometry formed by buffering out just one side of a linestring geometry. Distances are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+single_sided_buffer(geometry, distance, [segments=8], [join=1], [miter_limit=2.0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a (multi)linestring geometry
+distance - buffer distance. Positive values will be buffered to the left of lines, negative values to the right
+segments - number of segments to use to represent a quarter circle when a round join style is used. A larger number results in a smoother buffer with more nodes.
+join - join style for corners, where 1 = round, 2 = miter and 3 = bevel
+miter_limit - limit on the miter ratio used for very sharp corners (when using miter joins only)
+
+
+
+Examples
+
+single_sided_buffer(@geometry, 10.5) → line buffered to the left by 10.5 units
+single_sided_buffer(@geometry, -10.5) → line buffered to the right by 10.5 units
+single_sided_buffer(@geometry, 10.5, segments:=16, join:=1) → line buffered to the left by 10.5 units, using more segments to result in a smoother buffer
+single_sided_buffer(@geometry, 10.5, join:=3) → line buffered to the left by 10.5 units, using a beveled join
+
+
+
+
+
+
+
+Left versus right side buffer on the same vector line layer
+
+
+
+sinuosity
+Returns the sinuosity of a curve, which is the ratio of the curve length to the straight (2D) distance between its endpoints.
+
+
+
+
+
+
+Syntax
+sinuosity(geometry)
+
+Arguments
+
+geometry - Input curve (circularstring, linestring)
+
+
+
+Examples
+
+round(sinuosity(geom_from_wkt('LINESTRING(2 0, 2 2, 3 2, 3 3)')), 3) → 1.265
+sinuosity(geom_from_wkt('LINESTRING( 3 1, 5 1)')) → 1.0
+
+
+
+
+
+
+
+smooth
+Smooths a geometry by adding extra nodes which round off corners in the geometry. If input geometries contain Z or M values, these will also be smoothed and the output geometry will retain the same dimensionality as the input geometry.
+
+
+
+
+
+
+Syntax
+smooth(geometry, [iterations=1], [offset=0.25], [min_length=-1], [max_angle=180])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+iterations - number of smoothing iterations to apply. Larger numbers result in smoother but more complex geometries.
+offset - value between 0 and 0.5 which controls how tightly the smoothed geometry follow the original geometry. Smaller values result in a tighter smoothing, larger values result in looser smoothing.
+min_length - minimum length of segments to apply smoothing to. This parameter can be used to avoid placing excessive additional nodes in shorter segments of the geometry.
+max_angle - maximum angle at node for smoothing to be applied (0-180). By lowering the maximum angle intentionally sharp corners in the geometry can be preserved. For instance, a value of 80 degrees will retain right angles in the geometry.
+
+
+
+Examples
+
+geom_to_wkt(smooth(geometry:=geom_from_wkt('LineString(0 0, 5 0, 5 5)'),iterations:=1,offset:=0.2,min_length:=-1,max_angle:=180)) → 'LineString (0 0, 4 0, 5 1, 5 5)'
+
+
+
+
+
+
+
+Increasing number of iterations causes smoother geometries
+
+
+
+square_wave
+Constructs square/rectangular waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+square_wave(geometry, wavelength, amplitude, [strict=False])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+wavelength - wavelength of square waveform
+amplitude - amplitude of square waveform
+strict - By default the wavelength argument is treated as a "maximum wavelength", where the actual wavelength will be dynamically adjusted so that an exact number of square waves are created along the boundaries of the geometry. If the strict argument is set to true then the wavelength will be used exactly and an incomplete pattern may be used for the final waveform.
+
+
+
+Examples
+
+square_wave(geom_from_wkt('LineString(0 0, 10 0)'), 3, 1) → Square waves with wavelength 3 and amplitude 1 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with square waves
+
+
+
+square_wave_randomized
+Constructs randomized square/rectangular waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+square_wave_randomized(geometry, min_wavelength, max_wavelength, min_amplitude, max_amplitude, [seed=0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+min_wavelength - minimum wavelength of waves
+max_wavelength - maximum wavelength of waves
+min_amplitude - minimum amplitude of waves
+max_amplitude - maximum amplitude of waves
+seed - specifies a random seed for generating waves. If the seed is 0, then a completely random set of waves will be generated.
+
+
+
+Examples
+
+square_wave_randomized(geom_from_wkt('LineString(0 0, 10 0)'), 2, 3, 0.1, 0.2) → Randomly sized square waves with wavelengths between 2 and 3 and amplitudes between 0.1 and 0.2 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with square randomized waves
+
+
+
+start_point
+Returns the first node from a geometry.
+
+
+
+
+
+
+Syntax
+start_point(geometry)
+
+Arguments
+
+geometry - geometry object
+
+
+
+Examples
+
+geom_to_wkt(start_point(geom_from_wkt('LINESTRING(4 0, 4 2, 0 2)'))) → 'Point (4 0)'
+
+
+
+
+
+
+
+Starting point of a line feature
+
+
+
+straight_distance_2d
+Returns the direct/euclidean distance between the first and last vertex of a geometry. The geometry must be a curve (circularstring, linestring).
+
+
+
+
+
+
+Syntax
+straight_distance_2d(geometry)
+
+Arguments
+
+geometry - The geometry.
+
+
+
+Examples
+
+straight_distance_2d(geom_from_wkt('LINESTRING(1 0, 1 1)')) → 1
+round(straight_distance_2d(geom_from_wkt('LINESTRING(1 4, 3 5, 5 0)')), 3) → 5.657
+
+
+
+
+
+
+
+sym_difference
+Returns a geometry that represents the portions of two geometries that do not intersect.
+
+
+
+
+
+
+Syntax
+sym_difference(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+geom_to_wkt( sym_difference( geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ), geom_from_wkt( 'LINESTRING(3 3, 8 8)' ) ) ) → 'LINESTRING(5 5, 8 8)'
+
+
+
+
+
+
+
+tapered_buffer
+Creates a buffer along a line geometry where the buffer diameter varies evenly over the length of the line.
+
+
+
+
+
+
+Syntax
+tapered_buffer(geometry, start_width, end_width, [segments=8])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - input geometry. Must be a (multi)line geometry.
+start_width - width of buffer at start of line,
+end_width - width of buffer at end of line.
+segments - number of segments to approximate quarter-circle curves in the buffer.
+
+
+
+Examples
+
+tapered_buffer(geometry:=geom_from_wkt('LINESTRING(1 2, 4 2)'),start_width:=1,end_width:=2,segments:=8) → A tapered buffer starting with a diameter of 1 and ending with a diameter of 2 along the linestring geometry.
+
+
+
+
+
+
+
+Tapered buffer on line features
+
+
+
+touches
+Tests whether a geometry touches another. Returns TRUE if the geometries have at least one point in common, but their interiors do not intersect.
+
+
+
+
+
+
+Syntax
+touches(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+touches( geom_from_wkt( 'LINESTRING(5 3, 4 4)' ), geom_from_wkt( 'LINESTRING(3 3, 4 4, 5 5)' ) ) → TRUE
+touches( geom_from_wkt( 'POINT(4 4)' ), geom_from_wkt( 'POINT(5 5)' ) ) → FALSE
+
+
+
+
+
+
+
+transform
+Returns the geometry transformed from a source CRS to a destination CRS.
+
+
+
+
+
+
+Syntax
+transform(geometry, source_auth_id, dest_auth_id)
+
+Arguments
+
+geometry - a geometry
+source_auth_id - the source CRS definition or CRS object
+dest_auth_id - the destination CRS definition or CRS object
+
+
+
+Examples
+
+geom_to_wkt( transform( make_point(488995.53240249, 7104473.38600835), 'EPSG:2154', 'EPSG:4326' ) ) → 'POINT(0 51)'
+
+
+
+
+
+
+
+translate
+Returns a translated version of a geometry. Calculations are in the Spatial Reference System of this geometry.
+
+
+
+
+
+
+Syntax
+translate(geometry, dx, dy)
+
+Arguments
+
+geometry - a geometry
+dx - delta x
+dy - delta y
+
+
+
+Examples
+
+translate(@geometry, 5, 10) → a geometry of the same type like the original one
+
+
+
+
+
+
+
+Translating features
+
+
+
+triangular_wave
+Constructs triangular waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+triangular_wave(geometry, wavelength, amplitude, [strict=False])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+wavelength - wavelength of triangular waveform
+amplitude - amplitude of triangular waveform
+strict - By default the wavelength argument is treated as a "maximum wavelength", where the actual wavelength will be dynamically adjusted so that an exact number of triangular waves are created along the boundaries of the geometry. If the strict argument is set to true then the wavelength will be used exactly and an incomplete pattern may be used for the final waveform.
+
+
+
+Examples
+
+triangular_wave(geom_from_wkt('LineString(0 0, 10 0)'), 3, 1) → Triangular waves with wavelength 3 and amplitude 1 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with triangular waves
+
+
+
+triangular_wave_randomized
+Constructs randomized triangular waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+triangular_wave_randomized(geometry, min_wavelength, max_wavelength, min_amplitude, max_amplitude, [seed=0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+min_wavelength - minimum wavelength of waves
+max_wavelength - maximum wavelength of waves
+min_amplitude - minimum amplitude of waves
+max_amplitude - maximum amplitude of waves
+seed - specifies a random seed for generating waves. If the seed is 0, then a completely random set of waves will be generated.
+
+
+
+Examples
+
+triangular_wave_randomized(geom_from_wkt('LineString(0 0, 10 0)'), 2, 3, 0.1, 0.2) → Randomly sized triangular waves with wavelengths between 2 and 3 and amplitudes between 0.1 and 0.2 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with triangular randomized waves
+
+
+
+union
+Returns a geometry that represents the point set union of the geometries.
+
+
+
+
+
+
+Syntax
+union(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+geom_to_wkt( union( make_point(4, 4), make_point(5, 5) ) ) → 'MULTIPOINT(4 4, 5 5)'
+
+
+
+
+
+
+
+wave
+Constructs rounded (sine-like) waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+wave(geometry, wavelength, amplitude, [strict=False])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+wavelength - wavelength of sine-like waveform
+amplitude - amplitude of sine-like waveform
+strict - By default the wavelength argument is treated as a "maximum wavelength", where the actual wavelength will be dynamically adjusted so that an exact number of waves are created along the boundaries of the geometry. If the strict argument is set to true then the wavelength will be used exactly and an incomplete pattern may be used for the final waveform.
+
+
+
+Examples
+
+wave(geom_from_wkt('LineString(0 0, 10 0)'), 3, 1) → Sine-like waves with wavelength 3 and amplitude 1 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with waves
+
+
+
+wave_randomized
+Constructs randomized curved (sine-like) waves along the boundary of a geometry.
+
+
+
+
+
+
+Syntax
+wave_randomized(geometry, min_wavelength, max_wavelength, min_amplitude, max_amplitude, [seed=0])
+[] marks optional arguments
+
+
+Arguments
+
+geometry - a geometry
+min_wavelength - minimum wavelength of waves
+max_wavelength - maximum wavelength of waves
+min_amplitude - minimum amplitude of waves
+max_amplitude - maximum amplitude of waves
+seed - specifies a random seed for generating waves. If the seed is 0, then a completely random set of waves will be generated.
+
+
+
+Examples
+
+wave_randomized(geom_from_wkt('LineString(0 0, 10 0)'), 2, 3, 0.1, 0.2) → Randomly sized curved waves with wavelengths between 2 and 3 and amplitudes between 0.1 and 0.2 along the linestring
+
+
+
+
+
+
+
+Symbolizing features with randomized waves
+
+
+
+wedge_buffer
+Returns a wedge shaped buffer originating from a point geometry.
+
+
+
+
+
+
+Syntax
+wedge_buffer(center, azimuth, width, outer_radius, [inner_radius=0.0])
+[] marks optional arguments
+
+
+Arguments
+
+center - center point (origin) of buffer. Must be a point geometry.
+azimuth - angle (in degrees) for the middle of the wedge to point.
+width - buffer width (in degrees). Note that the wedge will extend to half of the angular width either side of the azimuth direction.
+outer_radius - outer radius for buffers
+inner_radius - optional inner radius for buffers
+
+
+
+Examples
+
+wedge_buffer(center:=geom_from_wkt('POINT(1 2)'),azimuth:=90,width:=180,outer_radius:=1) → A wedge shaped buffer centered on the point (1,2), facing to the East, with a width of 180 degrees and outer radius of 1.
+
+
+
+
+
+
+
+Wedge buffering features
+
+
+
+within
+Tests whether a geometry is within another. Returns TRUE if the geometry1 is completely within geometry2.
+
+
+
+
+
+
+Syntax
+within(geometry1, geometry2)
+
+Arguments
+
+geometry1 - a geometry
+geometry2 - a geometry
+
+
+
+Examples
+
+within( geom_from_wkt( 'POINT( 0.5 0.5)' ), geom_from_wkt( 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))' ) ) → TRUE
+within( geom_from_wkt( 'POINT( 5 5 )' ), geom_from_wkt( 'POLYGON((0 0, 0 1, 1 1, 1 0, 0 0 ))' ) ) → FALSE
+
+
+
+
+
+
+
+$x
+Returns the x coordinate of the current point feature. If the feature is a multipoint feature, then the x-coordinate of the first point will be returned. WARNING: This function is deprecated. It is recommended to use the replacement x() function with @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$x
+
+Examples
+
+$x → 42
+
+
+
+
+
+
+
+x
+Returns the x coordinate of a point geometry, or the x coordinate of the centroid for a non-point geometry.
+
+
+
+
+
+
+Syntax
+x(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+x( geom_from_wkt( 'POINT(2 5)' ) ) → 2
+x( @geometry ) → x coordinate of the current feature's centroid
+
+
+
+
+
+
+
+$x_at
+Retrieves a x coordinate of the current feature's geometry. WARNING: This function is deprecated. It is recommended to use the replacement x_at function with @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$x_at(vertex)
+
+Arguments
+
+vertex - index of the vertex of the current geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+$x_at(1) → 5
+
+
+
+
+
+
+
+x_at
+Retrieves a x coordinate of the geometry.
+
+
+
+
+
+
+Syntax
+x_at(geometry, vertex)
+
+Arguments
+
+geometry - geometry object
+vertex - index of the vertex of the geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+x_at( geom_from_wkt( 'POINT(4 5)' ), 0 ) → 4
+
+
+
+
+
+
+
+x_max
+Returns the maximum x coordinate of a geometry. Calculations are in the spatial reference system of this geometry.
+
+
+
+
+
+
+Syntax
+x_max(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+x_max( geom_from_wkt( 'LINESTRING(2 5, 3 6, 4 8)') ) → 4
+
+
+
+
+
+
+
+x_min
+Returns the minimum x coordinate of a geometry. Calculations are in the spatial reference system of this geometry.
+
+
+
+
+
+
+Syntax
+x_min(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+x_min( geom_from_wkt( 'LINESTRING(2 5, 3 6, 4 8)') ) → 2
+
+
+
+
+
+
+
+$y
+Returns the y coordinate of the current point feature. If the feature is a multipoint feature, then the y-coordinate of the first point will be returned. WARNING: This function is deprecated. It is recommended to use the replacement y() function with @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$y
+
+Examples
+
+$y → 42
+
+
+
+
+
+
+
+y
+Returns the y coordinate of a point geometry, or the y coordinate of the centroid for a non-point geometry.
+
+
+
+
+
+
+Syntax
+y(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+y( geom_from_wkt( 'POINT(2 5)' ) ) → 5
+y( @geometry ) → y coordinate of the current feature's centroid
+
+
+
+
+
+
+
+$y_at
+Retrieves a y coordinate of the current feature's geometry. WARNING: This function is deprecated. It is recommended to use the replacement y_at function with @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$y_at(vertex)
+
+Arguments
+
+vertex - index of the vertex of the current geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+$y_at(1) → 2
+
+
+
+
+
+
+
+y_at
+Retrieves a y coordinate of the geometry.
+
+
+
+
+
+
+Syntax
+y_at(geometry, vertex)
+
+Arguments
+
+geometry - geometry object
+vertex - index of the vertex of the geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+y_at( geom_from_wkt( 'POINT(4 5)' ), 0 ) → 5
+
+
+
+
+
+
+
+y_max
+Returns the maximum y coordinate of a geometry. Calculations are in the spatial reference system of this geometry.
+
+
+
+
+
+
+Syntax
+y_max(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+y_max( geom_from_wkt( 'LINESTRING(2 5, 3 6, 4 8)') ) → 8
+
+
+
+
+
+
+
+y_min
+Returns the minimum y coordinate of a geometry. Calculations are in the spatial reference system of this geometry.
+
+
+
+
+
+
+Syntax
+y_min(geometry)
+
+Arguments
+
+geometry - a geometry
+
+
+
+Examples
+
+y_min( geom_from_wkt( 'LINESTRING(2 5, 3 6, 4 8)') ) → 5
+
+
+
+
+
+
+
+$z
+Returns the z value of the current point feature if it is 3D. If the feature is a multipoint feature, then the z value of the first point will be returned. WARNING: This function is deprecated. It is recommended to use the replacement z() function with @geometry variable instead.
+
+
+
+
+
+
+Syntax
+$z
+
+Examples
+
+$z → 123
+
+
+
+
+
+
+
+z
+Returns the z coordinate of a point geometry, or NULL if the geometry has no z value.
+
+
+
+
+
+
+Syntax
+z(geometry)
+
+Arguments
+
+geometry - a point geometry
+
+
+
+Examples
+
+z( geom_from_wkt( 'POINTZ(2 5 7)' ) ) → 7
+
+
+
+
+
+
+
+z_at
+Retrieves a z coordinate of the geometry, or NULL if the geometry has no z value.
+
+
+
+
+
+
+Syntax
+z_at(geometry, vertex)
+
+Arguments
+
+geometry - geometry object
+vertex - index of the vertex of the geometry (indices start at 0; negative values apply from the last index, starting at -1)
+
+
+
+Examples
+
+z_at(geom_from_wkt('LineStringZ(0 0 0, 10 10 5, 10 10 0)'), 1) → 5
+
+
+
+
+
+
+
+z_max
+Returns the maximum z coordinate of a geometry, or NULL if the geometry has no z value.
+
+
+
+
+
+
+Syntax
+z_max(geometry)
+
+Arguments
+
+geometry - a geometry with z coordinate
+
+
+
+Examples
+
+z_max( geom_from_wkt( 'POINT ( 0 0 1 )' ) ) → 1
+z_max( geom_from_wkt( 'MULTIPOINT ( 0 0 1 , 1 1 3 )' ) ) → 3
+z_max( make_line( make_point( 0,0,0 ), make_point( -1,-1,-2 ) ) ) → 0
+z_max( geom_from_wkt( 'LINESTRING( 0 0 0, 1 0 2, 1 1 -1 )' ) ) → 2
+z_max( geom_from_wkt( 'POINT ( 0 0 )' ) ) → NULL
+
+
+
+
+
+
+
+z_min
+Returns the minimum z coordinate of a geometry, or NULL if the geometry has no z value.
+
+
+
+
+
+
+Syntax
+z_min(geometry)
+
+Arguments
+
+geometry - a geometry with z coordinate
+
+
+
+Examples
+
+z_min( geom_from_wkt( 'POINT ( 0 0 1 )' ) ) → 1
+z_min( geom_from_wkt( 'MULTIPOINT ( 0 0 1 , 1 1 3 )' ) ) → 1
+z_min( make_line( make_point( 0,0,0 ), make_point( -1,-1,-2 ) ) ) → -2
+z_min( geom_from_wkt( 'LINESTRING( 0 0 0, 1 0 2, 1 1 -1 )' ) ) → -1
+z_min( geom_from_wkt( 'POINT ( 0 0 )' ) ) → NULL
+
+
+
+
+
+
+

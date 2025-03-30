@@ -1,0 +1,825 @@
+
+
+
+
+
+orphan:
+
+
+
+
+%
+Remainder of division. Takes the sign of the dividend.
+
+
+
+
+
+
+Syntax
+a % b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+9 % 2 → 1
+9 % -2 → 1
+-9 % 2 → -1
+5 % NULL → NULL
+
+
+
+
+
+
+
+*
+Multiplication of two values
+
+
+
+
+
+
+Syntax
+a * b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 * 4 → 20
+5 * NULL → NULL
+
+
+
+
+
+
+
++
+Addition of two values. If one of the values is NULL the result will be NULL.
+
+
+
+
+
+
+Syntax
+a + b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 + 4 → 9
+5 + NULL → NULL
+'QGIS ' + 'ROCKS' → 'QGIS ROCKS'
+to_datetime('2020-08-01 12:00:00') + '1 day 2 hours' → 2020-08-02T14:00:00
+
+
+
+
+
+
+
+-
+Subtraction of two values. If one of the values is NULL the result will be NULL.
+
+
+
+
+
+
+Syntax
+a - b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 - 4 → 1
+5 - NULL → NULL
+to_datetime('2012-05-05 12:00:00') - to_interval('1 day 2 hours') → 2012-05-04T10:00:00
+
+
+
+
+
+
+
+/
+Division of two values
+
+
+
+
+
+
+Syntax
+a / b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 / 4 → 1.25
+5 / NULL → NULL
+
+
+
+
+
+
+
+//
+Floor division of two values
+
+
+
+
+
+
+Syntax
+a // b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+9 // 2 → 4
+
+
+
+
+
+
+
+<
+Compares two values and evaluates to 1 if the left value is less than the right value.
+
+
+
+
+
+
+Syntax
+a < b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 < 4 → FALSE
+5 < 5 → FALSE
+4 < 5 → TRUE
+
+
+
+
+
+
+
+<=
+Compares two values and evaluates to 1 if the left value is less or equal than the right value.
+
+
+
+
+
+
+Syntax
+a <= b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 <= 4 → FALSE
+5 <= 5 → TRUE
+4 <= 5 → TRUE
+
+
+
+
+
+
+
+<>
+Compares two values and evaluates to 1 if they are not equal.
+
+
+
+
+
+
+Syntax
+a <> b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 <> 4 → TRUE
+4 <> 4 → FALSE
+5 <> NULL → NULL
+NULL <> NULL → NULL
+
+
+
+
+
+
+
+=
+Compares two values and evaluates to 1 if they are equal.
+
+
+
+
+
+
+Syntax
+a = b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 = 4 → FALSE
+4 = 4 → TRUE
+5 = NULL → NULL
+NULL = NULL → NULL
+
+
+
+
+
+
+
+>
+Compares two values and evaluates to 1 if the left value is greater than the right value.
+
+
+
+
+
+
+Syntax
+a > b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 > 4 → TRUE
+5 > 5 → FALSE
+4 > 5 → FALSE
+
+
+
+
+
+
+
+>=
+Compares two values and evaluates to 1 if the left value is greater or equal than the right value.
+
+
+
+
+
+
+Syntax
+a >= b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 >= 4 → TRUE
+5 >= 5 → TRUE
+4 >= 5 → FALSE
+
+
+
+
+
+
+
+AND
+Returns TRUE when conditions a and b are true.
+
+
+
+
+
+
+Syntax
+a AND b
+
+Arguments
+
+a - condition
+b - condition
+
+
+
+Examples
+
+TRUE AND TRUE → TRUE
+TRUE AND FALSE → FALSE
+4 = 2+2 AND 1 = 1 → TRUE
+4 = 2+2 AND 1 = 2 → FALSE
+
+
+
+
+
+
+
+BETWEEN
+Returns TRUE if value is within the specified range. The range is considered inclusive of the bounds. To test for exclusion NOT BETWEEN can be used.
+
+
+
+
+
+
+Syntax
+value BETWEEN lower_bound AND higher_bound
+
+Arguments
+
+value - the value to compare with a range. It can be a string, a number or a date.
+lower_bound AND higher_bound - range bounds
+
+
+
+Examples
+
+'B' BETWEEN 'A' AND 'C' → TRUE
+2 BETWEEN 1 AND 3 → TRUE
+2 BETWEEN 2 AND 3 → TRUE
+'B' BETWEEN 'a' AND 'c' → FALSE
+lower('B') BETWEEN 'a' AND 'b' → TRUE
+
+
+
+
+
+
+Note
+value BETWEEN lower_bound AND higher_bound is the same as "value >= lower_bound AND value <= higher_bound".
+
+
+
+ILIKE
+Returns TRUE if the first parameter matches case-insensitive the supplied pattern. LIKE can be used instead of ILIKE to make the match case-sensitive. Works with numbers also.
+
+
+
+
+
+
+Syntax
+string/number ILIKE pattern
+
+Arguments
+
+string/number - string to search
+pattern - pattern to find, you can use '%' as a wildcard, '_' as a single char and '\\' to escape these special characters.
+
+
+
+Examples
+
+'A' ILIKE 'A' → TRUE
+'A' ILIKE 'a' → TRUE
+'A' ILIKE 'B' → FALSE
+'ABC' ILIKE 'b' → FALSE
+'ABC' ILIKE 'B' → FALSE
+'ABC' ILIKE '_b_' → TRUE
+'ABC' ILIKE '_B_' → TRUE
+'ABCD' ILIKE '_b_' → FALSE
+'ABCD' ILIKE '_B_' → FALSE
+'ABCD' ILIKE '_b%' → TRUE
+'ABCD' ILIKE '_B%' → TRUE
+'ABCD' ILIKE '%b%' → TRUE
+'ABCD' ILIKE '%B%' → TRUE
+'ABCD%' ILIKE 'abcd\\%' → TRUE
+'ABCD' ILIKE '%B\\%' → FALSE
+
+
+
+
+
+
+
+IN
+Returns TRUE if value is found within a list of values.
+
+
+
+
+
+
+Syntax
+a IN b
+
+Arguments
+
+a - value
+b - list of values
+
+
+
+Examples
+
+'A' IN ('A','B') → TRUE
+'A' IN ('C','B') → FALSE
+
+
+
+
+
+
+
+IS
+Returns TRUE if a is the same as b.
+
+
+
+
+
+
+Syntax
+a IS b
+
+Arguments
+
+a - any value
+b - any value
+
+
+
+Examples
+
+'A' IS 'A' → TRUE
+'A' IS 'a' → FALSE
+4 IS 4 → TRUE
+4 IS 2+2 → TRUE
+4 IS 2 → FALSE
+@geometry IS NULL → 0, if your geometry is not NULL
+
+
+
+
+
+
+
+IS NOT
+Returns TRUE if a is not the same as b.
+
+
+
+
+
+
+Syntax
+a IS NOT b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+'a' IS NOT 'b' → TRUE
+'a' IS NOT 'a' → FALSE
+4 IS NOT 2+2 → FALSE
+
+
+
+
+
+
+
+LIKE
+Returns TRUE if the first parameter matches the supplied pattern. Works with numbers also.
+
+
+
+
+
+
+Syntax
+string/number LIKE pattern
+
+Arguments
+
+string/number - value
+pattern - pattern to compare value with, you can use '%' as a wildcard, '_' as a single char and '\\' to escape these special characters.
+
+
+
+Examples
+
+'A' LIKE 'A' → TRUE
+'A' LIKE 'a' → FALSE
+'A' LIKE 'B' → FALSE
+'ABC' LIKE 'B' → FALSE
+'ABC' LIKE '_B_' → TRUE
+'ABCD' LIKE '_B_' → FALSE
+'ABCD' LIKE '_B%' → TRUE
+'ABCD' LIKE '%B%' → TRUE
+'1%' LIKE '1\\%' → TRUE
+'1_' LIKE '1\\%' → FALSE
+
+
+
+
+
+
+
+NOT
+Negates a condition.
+
+
+
+
+
+
+Syntax
+NOT a
+
+Arguments
+
+a - condition
+
+
+
+Examples
+
+NOT 1 → FALSE
+NOT 0 → TRUE
+
+
+
+
+
+
+
+NOT BETWEEN
+Returns TRUE if value is not within the specified range. The range is considered inclusive of the bounds.
+
+
+
+
+
+
+Syntax
+value NOT BETWEEN lower_bound AND higher_bound
+
+Arguments
+
+value - the value to compare with a range. It can be a string, a number or a date.
+lower_bound AND higher_bound - range bounds
+
+
+
+Examples
+
+'B' NOT BETWEEN 'A' AND 'C' → FALSE
+1.0 NOT BETWEEN 1.1 AND 1.2 → TRUE
+2 NOT BETWEEN 2 AND 3 → FALSE
+'B' NOT BETWEEN 'a' AND 'c' → TRUE
+lower('B') NOT BETWEEN 'a' AND 'b' → FALSE
+
+
+
+
+
+
+Note
+value NOT BETWEEN lower_bound AND higher_bound is the same as "value < lower_bound OR value > higher_bound".
+
+
+
+OR
+Returns TRUE when condition a or b is true.
+
+
+
+
+
+
+Syntax
+a OR b
+
+Arguments
+
+a - condition
+b - condition
+
+
+
+Examples
+
+4 = 2+2 OR 1 = 1 → TRUE
+4 = 2+2 OR 1 = 2 → TRUE
+4 = 2   OR 1 = 2 → FALSE
+
+
+
+
+
+
+
+[]
+Index operator. Returns an element from an array or map value.
+
+
+
+
+
+
+Syntax
+[index]
+
+Arguments
+
+index - array index or map key value
+
+
+
+Examples
+
+array(1,2,3)[0] → 1
+array(1,2,3)[2] → 3
+array(1,2,3)[-1] → 3
+map('a',1,'b',2)['a'] → 1
+map('a',1,'b',2)['b'] → 2
+
+
+
+
+
+
+
+^
+Power of two values.
+
+
+
+
+
+
+Syntax
+a ^ b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+5 ^ 4 → 625
+5 ^ NULL → NULL
+
+
+
+
+
+
+
+||
+Joins two values together into a string.
+If one of the values is NULL the result will be NULL. See the CONCAT function for a different behavior.
+
+
+
+
+
+
+Syntax
+a || b
+
+Arguments
+
+a - value
+b - value
+
+
+
+Examples
+
+'Here' || ' and ' || 'there' → 'Here and there'
+'Nothing' || NULL → NULL
+'Dia: ' || "Diameter" → 'Dia: 25'
+1 || 2 → '12'
+
+
+
+
+
+
+
+~
+Performs a regular expression match on a string value. Backslash characters must be double escaped (e.g., "\\s" to match a white space character).
+
+
+
+
+
+
+Syntax
+string ~ regex
+
+Arguments
+
+string - A string value
+regex - A regular expression. Slashes must be escaped, eg \\d.
+
+
+
+Examples
+
+'hello' ~ 'll' → TRUE
+'hello' ~ '^ll' → FALSE
+'hello' ~ 'llo$' → TRUE
+'abc123' ~ '\\d+' → TRUE
+
+
+
+
+
+
+

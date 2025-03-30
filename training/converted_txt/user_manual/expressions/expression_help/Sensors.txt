@@ -1,0 +1,40 @@
+
+
+
+
+
+orphan:
+
+
+
+
+sensor_data
+Returns the last captured value (or values as a map for sensors which report multiple values) from a registered sensor.
+
+
+
+
+
+
+Syntax
+sensor_data(name, [expiration])
+[] marks optional arguments
+
+
+Arguments
+
+name - the sensor name
+expiration - maximum millisecond since last captured value allowed
+
+
+
+Examples
+
+sensor_data('geiger_1') → '2000'
+
+
+
+
+
+
+

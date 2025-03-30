@@ -1,0 +1,5 @@
+
+Laying out the maps
+With Print Layouts and Reports you can create maps and atlases,
+and print them or save them as image, PDF or SVG files.
+

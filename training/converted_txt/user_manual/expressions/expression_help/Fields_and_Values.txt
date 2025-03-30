@@ -1,0 +1,35 @@
+
+
+
+
+
+orphan:
+
+
+
+
+NULL
+Equates to a NULL value.
+
+
+
+
+
+
+Syntax
+NULL
+
+Examples
+
+NULL → a NULL value
+
+
+
+
+
+
+Note
+To test for NULL use an IS NULL or IS NOT NULL expression.
+
+
+

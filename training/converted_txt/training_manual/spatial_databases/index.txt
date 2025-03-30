@@ -1,0 +1,20 @@
+
+Module: Spatial Database Concepts with PostGIS
+Spatial Databases allow the storage of the geometries of records inside a
+Database as well as providing functionality for querying and retrieving the
+records  using these Geometries. In this module we will use PostGIS, an
+extension to PostgreSQL, to learn how to setup a spatial database, import data
+into the database and make use of the geographic functions that PostGIS offers.
+While working through this section, you may want to keep a copy of the PostGIS
+cheat sheet  available
+from Boston GIS user group.
+Another useful resource is the online PostGIS
+documentation.
+There are also some more extensive tutorials on PostGIS and Spatial Databases
+created by Boundless that are now hosted on the PostGIS's website:
+
+Introduction to PostGIS
+PostGIS Database Tips and Tricks
+
+See also PostGIS In Action.
+

@@ -1,0 +1,258 @@
+
+
+
+
+
+orphan:
+
+
+
+
+base_file_name
+Returns the base name of the file without the directory or file suffix.
+
+
+
+
+
+
+Syntax
+base_file_name(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+base_file_name('/home/qgis/data/country_boundaries.shp') → 'country_boundaries'
+
+
+
+
+
+
+
+exif
+Retrieves exif tag values from an image file.
+
+
+
+
+
+
+Syntax
+exif(path, [tag])
+[] marks optional arguments
+
+
+Arguments
+
+path - An image file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+tag - The tag to return. If empty, a map with all exif tag values will be returned.
+
+
+
+Examples
+
+exif('/my/photo.jpg','Exif.Image.Orientation') → 0
+
+
+
+
+
+
+
+file_exists
+Returns TRUE if a file path exists.
+
+
+
+
+
+
+Syntax
+file_exists(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+file_exists('/home/qgis/data/country_boundaries.shp') → TRUE
+
+
+
+
+
+
+
+file_name
+Returns the name of a file (including the file extension), excluding the directory.
+
+
+
+
+
+
+Syntax
+file_name(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+file_name('/home/qgis/data/country_boundaries.shp') → 'country_boundaries.shp'
+
+
+
+
+
+
+
+file_path
+Returns the directory component of a file path. This does not include the file name.
+
+
+
+
+
+
+Syntax
+file_path(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+file_path('/home/qgis/data/country_boundaries.shp') → '/home/qgis/data'
+
+
+
+
+
+
+
+file_size
+Returns the size (in bytes) of a file.
+
+
+
+
+
+
+Syntax
+file_size(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+file_size('/home/qgis/data/country_boundaries.geojson') → 5674
+
+
+
+
+
+
+
+file_suffix
+Returns the file suffix (extension) from a file path.
+
+
+
+
+
+
+Syntax
+file_suffix(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+file_suffix('/home/qgis/data/country_boundaries.shp') → 'shp'
+
+
+
+
+
+
+
+is_directory
+Returns TRUE if a path corresponds to a directory.
+
+
+
+
+
+
+Syntax
+is_directory(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+is_directory('/home/qgis/data/country_boundaries.shp') → FALSE
+is_directory('/home/qgis/data/') → TRUE
+
+
+
+
+
+
+
+is_file
+Returns TRUE if a path corresponds to a file.
+
+
+
+
+
+
+Syntax
+is_file(path)
+
+Arguments
+
+path - a file path or a map layer value. If a map layer value is specified then the file source of the layer will be used.
+
+
+
+Examples
+
+is_file('/home/qgis/data/country_boundaries.shp') → TRUE
+is_file('/home/qgis/data/') → FALSE
+
+
+
+
+
+
+

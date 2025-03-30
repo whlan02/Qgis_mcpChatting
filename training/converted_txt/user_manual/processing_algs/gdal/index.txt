@@ -1,0 +1,7 @@
+
+GDAL algorithm provider
+GDAL (Geospatial Data Abstraction Library) is a translator
+library for raster and vector geospatial data formats. Algorithms in the Processing
+Framework are derived from the GDAL raster programs
+and GDAL vector programs.
+

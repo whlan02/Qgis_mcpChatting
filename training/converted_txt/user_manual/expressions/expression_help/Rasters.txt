@@ -1,0 +1,106 @@
+
+
+
+
+
+orphan:
+
+
+
+
+raster_attributes
+Returns a map with the fields names as keys and the raster attribute table values as values from the attribute table entry that matches the given raster value.
+
+
+
+
+
+
+Syntax
+raster_attributes(layer, band, value)
+
+Arguments
+
+layer - the name or id of a raster layer
+band - the band number for the associated attribute table lookup.
+value - raster value
+
+
+
+Examples
+
+raster_attributes('vegetation', 1, raster_value('vegetation', 1, make_point(1,1))) → {'class': 'Vegetated', 'subclass': 'Trees'}
+
+
+
+
+
+
+
+raster_statistic
+Returns statistics from a raster layer.
+
+
+
+
+
+
+Syntax
+raster_statistic(layer, band, property)
+
+Arguments
+
+layer - a string, representing either a raster layer name or layer ID
+band - integer representing the band number from the raster layer, starting at 1
+property - a string corresponding to the property to return. Valid options are:
+min: minimum value
+max: maximum value
+avg: average (mean) value
+stdev: standard deviation of values
+range: range of values (max - min)
+sum: sum of all values from raster
+
+
+
+
+
+Examples
+
+raster_statistic('lc',1,'avg') → Average value from band 1 from 'lc' raster layer
+raster_statistic('ac2010',3,'min') → Minimum value from band 3 from 'ac2010' raster layer
+
+
+
+
+
+
+
+raster_value
+Returns the raster value found at the provided point.
+
+
+
+
+
+
+Syntax
+raster_value(layer, band, point)
+
+Arguments
+
+layer - the name or id of a raster layer
+band - the band number to sample the value from.
+point - point geometry (for multipart geometries having more than one part, a NULL value will be returned)
+
+
+
+Examples
+
+raster_value('dem', 1, make_point(1,1)) → 25
+
+
+
+
+
+
+

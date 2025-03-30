@@ -1,0 +1,5 @@
+
+Processing providers and algorithms
+Processing algorithms and their parameters (as presented in the user interface)
+are documented here.
+

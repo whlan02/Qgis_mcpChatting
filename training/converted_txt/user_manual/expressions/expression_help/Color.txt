@@ -1,0 +1,825 @@
+
+
+
+
+
+orphan:
+
+
+
+
+color_cmyk
+Returns a string representation of a color based on its cyan, magenta, yellow and black components
+
+
+
+
+
+
+Syntax
+color_cmyk(cyan, magenta, yellow, black)
+
+Arguments
+
+cyan - cyan component of the color, as a percentage integer value from 0 to 100
+magenta - magenta component of the color, as a percentage integer value from 0 to 100
+yellow - yellow component of the color, as a percentage integer value from 0 to 100
+black - black component of the color, as a percentage integer value from 0 to 100
+
+
+
+Examples
+
+color_cmyk(100,50,0,10) → '0,115,230'
+
+
+
+
+
+
+
+color_cmyka
+Returns a string representation of a color based on its cyan, magenta, yellow, black and alpha (transparency) components
+
+
+
+
+
+
+Syntax
+color_cmyka(cyan, magenta, yellow, black, alpha)
+
+Arguments
+
+cyan - cyan component of the color, as a percentage integer value from 0 to 100
+magenta - magenta component of the color, as a percentage integer value from 0 to 100
+yellow - yellow component of the color, as a percentage integer value from 0 to 100
+black - black component of the color, as a percentage integer value from 0 to 100
+alpha - alpha component as an integer value from 0 (completely transparent) to 255 (opaque).
+
+
+
+Examples
+
+color_cmyka(100,50,0,10,200) → '0,115,230,200'
+
+
+
+
+
+
+
+color_cmykf
+Returns a color object based on its cyan, magenta, yellow, black and alpha components.
+
+
+
+
+
+
+Syntax
+color_cmykf(cyan, magenta, yellow, black, [alpha=1.0])
+[] marks optional arguments
+
+
+Arguments
+
+cyan - cyan component as a float value from 0.0 to 1.0
+magenta - magenta component as a float value from 0.0 to 1.0
+yellow - yellow component as a float value from 0.0 to 1.0
+black - black component as a float value from 0.0 to 1.0
+alpha - alpha component as a float value from 0.0 to 1.0
+
+
+
+Examples
+
+color_cmykf(1,0.9,0.81,0.62) → CMYKA: 1.00,0.90,0.81,0.62,1.00
+
+
+
+
+
+
+
+color_grayscale_average
+Applies a grayscale filter to a color and returns it. Returned type is the same as color argument, i.e. a color string representation or a color object.
+
+
+
+
+
+
+Syntax
+color_grayscale_average(color)
+
+Arguments
+
+color - a color string representation or a color object
+
+
+
+Examples
+
+color_grayscale_average('255,100,50') → '135,135,135,255'
+color_grayscale_average(color_cmykf(0.6,0.5,0.1,0.8)) → CMYKA: 0.40,0.40,0.40,0.80,1.00
+
+
+
+
+
+
+
+color_hsl
+Returns a string representation of a color based on its hue, saturation, and lightness attributes.
+
+
+
+
+
+
+Syntax
+color_hsl(hue, saturation, lightness)
+
+Arguments
+
+hue - hue of the color, as an integer value from 0 to 360
+saturation - saturation percentage of the color as an integer value from 0 to 100
+lightness - lightness percentage of the color as an integer value from 0 to 100
+
+
+
+Examples
+
+color_hsl(100,50,70) → '166,217,140'
+
+
+
+
+
+
+
+color_hsla
+Returns a string representation of a color based on its hue, saturation, lightness and alpha (transparency) attributes
+
+
+
+
+
+
+Syntax
+color_hsla(hue, saturation, lightness, alpha)
+
+Arguments
+
+hue - hue of the color, as an integer value from 0 to 360
+saturation - saturation percentage of the color as an integer value from 0 to 100
+lightness - lightness percentage of the color as an integer value from 0 to 100
+alpha - alpha component as an integer value from 0 (completely transparent) to 255 (opaque).
+
+
+
+Examples
+
+color_hsla(100,50,70,200) → '166,217,140,200'
+
+
+
+
+
+
+
+color_hslf
+Returns a color object based on its hue, saturation, and lightness attributes.
+
+
+
+
+
+
+Syntax
+color_hslf(hue, saturation, lightness, [alpha=1.0])
+[] marks optional arguments
+
+
+Arguments
+
+hue - hue of the color, as a float value from 0.0 to 1.0
+saturation - saturation of the color as a float value from 0.0 to 1.0
+lightness - lightness of the color as a float value from 0.0 to 1.0
+alpha - alpha component as a float value from 0.0 to 1.0
+
+
+
+Examples
+
+color_hslf(0.3,0.52,0.7) → HSLA: 0.30,0.52,0.70,1.00
+
+
+
+
+
+
+
+color_hsv
+Returns a string representation of a color based on its hue, saturation, and value attributes.
+
+
+
+
+
+
+Syntax
+color_hsv(hue, saturation, value)
+
+Arguments
+
+hue - hue of the color, as an integer value from 0 to 360
+saturation - saturation percentage of the color as an integer value from 0 to 100
+value - value percentage of the color as an integer from 0 to 100
+
+
+
+Examples
+
+color_hsv(40,100,100) → '255,170,0'
+
+
+
+
+
+
+
+color_hsva
+Returns a string representation of a color based on its hue, saturation, value and alpha (transparency) attributes.
+
+
+
+
+
+
+Syntax
+color_hsva(hue, saturation, value, alpha)
+
+Arguments
+
+hue - hue of the color, as an integer value from 0 to 360
+saturation - saturation percentage of the color as an integer value from 0 to 100
+value - value percentage of the color as an integer from 0 to 100
+alpha - alpha component as an integer value from 0 (completely transparent) to 255 (opaque)
+
+
+
+Examples
+
+color_hsva(40,100,100,200) → '255,170,0,200'
+
+
+
+
+
+
+
+color_hsvf
+Returns a color object based on its hue, saturation, and value attributes.
+
+
+
+
+
+
+Syntax
+color_hsvf(hue, saturation, value, [alpha=1.0])
+[] marks optional arguments
+
+
+Arguments
+
+hue - hue of the color, as a float value from 0.0 to 1.0
+saturation - saturation of the color as a float value from 0.0 to 1.0
+value - value of the color as as a float value from 0.0 to 1.0
+alpha - alpha component as a float value from 0.0 to 1.0
+
+
+
+Examples
+
+color_hsvf(0.4,1,0.6) → HSVA: 0.40,1.00,0.60,1.00
+
+
+
+
+
+
+
+color_mix
+Returns a color mixing the red, green, blue, and alpha values of two provided colors based on a given ratio. Returned type is the same as color arguments, i.e. a color string representation or a color object.
+
+
+
+
+
+
+Syntax
+color_mix(color1, color2, ratio)
+
+Arguments
+
+color1 - a color string or a color object
+color2 - a color string or a color object
+ratio - a ratio
+
+
+
+Examples
+
+color_mix_rgb('0,0,0','255,255,255',0.5) → '127,127,127,255'
+color_mix(color_cmykf(0.9,0.9,0.9,0.9),color_cmykf(0.1,0.1,0.1,0.1),0.5) → CMYKA: 0.50,0.50,0.50,0.50,1.00
+
+
+
+
+
+
+
+color_mix_rgb
+Returns a string representing a color mixing the red, green, blue, and alpha values of two provided colors based on a given ratio.
+
+
+
+
+
+
+Syntax
+color_mix_rgb(color1, color2, ratio)
+
+Arguments
+
+color1 - a color string
+color2 - a color string
+ratio - a ratio
+
+
+
+Examples
+
+color_mix_rgb('0,0,0','255,255,255',0.5) → '127,127,127,255'
+
+
+
+
+
+
+
+color_part
+Returns a specific component from a color string or color object, e.g., the red component or alpha component.
+
+
+
+
+
+
+Syntax
+color_part(color, component)
+
+Arguments
+
+color - a color string or a color object
+component - a string corresponding to the color component to return. Valid options are:
+red: RGB red component (0-255)
+green: RGB green component (0-255)
+blue: RGB blue component (0-255)
+alpha: alpha (transparency) value (0-255)
+hue: HSV hue (0-360)
+saturation: HSV saturation (0-100)
+value: HSV value (0-100)
+hsl_hue: HSL hue (0-360)
+hsl_saturation: HSL saturation (0-100)
+lightness: HSL lightness (0-100)
+cyan: CMYK cyan component (0-100)
+magenta: CMYK magenta component (0-100)
+yellow: CMYK yellow component (0-100)
+black: CMYK black component (0-100)
+
+
+
+
+
+Examples
+
+color_part('200,10,30','green') → 10
+to_int(color_part(color_cmykf(0.1,0.2,0.3,0.9),'black')) → 90
+
+
+
+
+
+
+
+color_rgb
+Returns a string representation of a color based on its red, green, and blue components.
+
+
+
+
+
+
+Syntax
+color_rgb(red, green, blue)
+
+Arguments
+
+red - red component as an integer value from 0 to 255
+green - green component as an integer value from 0 to 255
+blue - blue component as an integer value from 0 to 255
+
+
+
+Examples
+
+color_rgb(255,127,0) → '255,127,0'
+
+
+
+
+
+
+
+color_rgba
+Returns a string representation of a color based on its red, green, blue, and alpha (transparency) components.
+
+
+
+
+
+
+Syntax
+color_rgba(red, green, blue, alpha)
+
+Arguments
+
+red - red component as an integer value from 0 to 255
+green - green component as an integer value from 0 to 255
+blue - blue component as an integer value from 0 to 255
+alpha - alpha component as an integer value from 0 (completely transparent) to 255 (opaque).
+
+
+
+Examples
+
+color_rgba(255,127,0,200) → '255,127,0,200'
+
+
+
+
+
+
+
+color_rgbf
+Returns a color object based on its red, green, blue and alpha components.
+
+
+
+
+
+
+Syntax
+color_rgbf(red, green, blue, [alpha=1.0])
+[] marks optional arguments
+
+
+Arguments
+
+red - red component as a float value from 0.0 to 1.0
+green - green component as a float value from 0.0 to 1.0
+blue - blue component as a float value from 0.0 to 1.0
+alpha - alpha component as a float value from 0.0 to 1.0
+
+
+
+Examples
+
+color_rgbf(1.0,0.5,0) → RGBA: 1.00,0.50,0.00,1.00
+
+
+
+
+
+
+
+create_ramp
+Returns a gradient ramp from a map of color strings and steps.
+
+
+
+
+
+
+Syntax
+create_ramp(map, [discrete=false])
+[] marks optional arguments
+
+
+Arguments
+
+map - a map of color strings and steps
+discrete - set this parameter to true to create a discrete color ramp
+
+
+
+Examples
+
+ramp_color(create_ramp(map(0,'0,0,0',1,'255,0,0')),1) → '255,0,0,255'
+
+
+
+
+
+
+
+darker
+Returns a darker (or lighter) color. Returned type is the same as color arguments, i.e. a color string representation or a color object.
+
+
+
+
+
+
+Syntax
+darker(color, factor)
+
+Arguments
+
+color - a color string or a color object
+factor - an integer corresponding to the darkening factor:
+if the factor is greater than 100, this function returns a darker color (e.g., setting factor to 200 returns a color that is half the brightness);
+if the factor is less than 100, the return color is lighter, but using the lighter() function for this purpose is recommended;
+if the factor is 0 or negative, the return value is unspecified.
+
+
+
+
+
+Examples
+
+darker('200,10,30', 200) → '100,5,15,255'
+
+
+
+
+
+
+
+lighter
+Returns a lighter (or darker) color. Returned type is the same as color arguments, i.e. a color string representation or a color object.
+
+
+
+
+
+
+Syntax
+lighter(color, factor)
+
+Arguments
+
+color - a color string or a color object
+factor - an integer corresponding to the lightening factor:
+if the factor is greater than 100, this function returns a lighter color (e.g., setting factor to 150 returns a color that is 50% brighter);
+if the factor is less than 100, the return color is darker, but using the darker() function for this purpose is recommended;
+if the factor is 0 or negative, the return value is unspecified.
+
+
+
+
+
+Examples
+
+lighter('200,10,30', 200) → '255,158,168,255'
+
+
+
+
+
+
+
+project_color
+Returns a color from the project's color scheme.
+
+
+
+
+
+
+Syntax
+project_color(name)
+
+Arguments
+
+name - a color name
+
+
+
+Examples
+
+project_color('Logo color') → '20,140,50'
+
+
+
+
+
+
+
+project_color_object
+Returns a color from the project's color scheme. Contrary to project_color which returns a color string representation, project_color_object returns a color object.
+
+
+
+
+
+
+Syntax
+project_color_object(name)
+
+Arguments
+
+name - a color name
+
+
+
+Examples
+
+project_color_object('Logo color') → RGBA: 0.08,0.55,0.20,1.00
+
+
+
+
+
+
+
+ramp_color
+Returns a string representing a color from a color ramp.
+Saved ramp variant
+Returns a string representing a color from a saved ramp
+
+
+
+
+
+
+Syntax
+ramp_color(ramp_name, value)
+
+Arguments
+
+ramp_name - the name of the color ramp as a string, for example 'Spectral'
+value - the position on the ramp to select the color from as a real number between 0 and 1
+
+
+
+Examples
+
+ramp_color('Spectral',0.3) → '253,190,115,255'
+
+
+
+
+
+
+Note
+The color ramps available vary between QGIS installations. This function may not give the expected results if you move your QGIS project between installations.
+
+Expression-created ramp variant
+Returns a string representing a color from an expression-created ramp
+
+
+
+
+
+
+Syntax
+ramp_color(ramp, value)
+
+Arguments
+
+ramp - the color ramp
+value - the position on the ramp to select the color from as a real number between 0 and 1
+
+
+
+Examples
+
+ramp_color(create_ramp(map(0,'0,0,0',1,'255,0,0')),1) → '255,0,0,255'
+
+
+
+
+
+
+
+ramp_color_object
+Returns a color object from a color ramp. Contrary to ramp_color which returns a color string representation, ramp_color_object returns a color object.
+Saved ramp variant
+Returns a color object from a saved ramp
+
+
+
+
+
+
+Syntax
+ramp_color_object(ramp_name, value)
+
+Arguments
+
+ramp_name - the name of the color ramp as a string, for example 'Spectral'
+value - the position on the ramp to select the color from as a real number between 0 and 1
+
+
+
+Examples
+
+ramp_color_object('Spectral',0.3) → RGBA: 0.99,0.75,0.45,1.00
+
+
+
+
+
+
+Note
+The color ramps available vary between QGIS installations. This function may not give the expected results if you move your QGIS project between installations.
+
+Expression-created ramp variant
+Returns a color object from an expression-created ramp
+
+
+
+
+
+
+Syntax
+ramp_color_object(ramp, value)
+
+Arguments
+
+ramp - the color ramp
+value - the position on the ramp to select the color from as a real number between 0 and 1
+
+
+
+Examples
+
+ramp_color_object(create_ramp(map(0,color_rgbf(0,0,0),1,color_rgbf(1,0,0))),1) → RGBA: 1.00,0.00,0.00,1.00
+
+
+
+
+
+
+
+set_color_part
+Sets a specific color component for a color string or a color object, e.g., the red component or alpha component.
+
+
+
+
+
+
+Syntax
+set_color_part(color, component, value)
+
+Arguments
+
+color - a color string or a color object
+component - a string corresponding to the color component to set. Valid options are:
+red: RGB red component (0-255)
+green: RGB green component (0-255)
+blue: RGB blue component (0-255)
+alpha: alpha (transparency) value (0-255)
+hue: HSV hue (0-360)
+saturation: HSV saturation (0-100)
+value: HSV value (0-100)
+hsl_hue: HSL hue (0-360)
+hsl_saturation: HSL saturation (0-100)
+lightness: HSL lightness (0-100)
+cyan: CMYK cyan component (0-100)
+magenta: CMYK magenta component (0-100)
+yellow: CMYK yellow component (0-100)
+black: CMYK black component (0-100)
+
+
+value - new value for color component, respecting the ranges listed above
+
+
+
+Examples
+
+set_color_part('200,10,30','green',50) → '200,50,30,255'
+set_color_part(color_cmykf(0.21,0,0.92,0.70),'black',100) → CMYKA: 0.21,0.00,0.92,1.00,1.00
+
+
+
+
+
+
+
