@@ -782,7 +782,7 @@ if GUI_AVAILABLE:
 
         def show_settings(self):
             dialog = SettingsDialog(self)
-            if dialog.exec_():
+            if dialog.exec():
                 settings = dialog.get_settings()
                 # Update the LLM client with new settings
                 self.chat_session.llm_client.update_settings(
