@@ -13,13 +13,82 @@ from settings_dialog import SettingsDialog
 from openai import OpenAI
 
 
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load environment variables
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# Embeddings + Vectorstore
+embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)
+vectorstore = FAISS.load_local("qgis_vector_index", embedding, allow_dangerous_deserialization=True)
+retriever = vectorstore.as_retriever()
+
+# LLMs
+llm = ChatOpenAI(model_name="gpt-4o-mini", openai_api_key=openai_api_key)
+general_llm = ChatOpenAI(model_name="gpt-4o-mini", openai_api_key=openai_api_key)
+
+# Prompts for RAG
+contextualize_q_system_prompt = """Given a chat history and the latest user question \
+which might reference context in the chat history, formulate a standalone question \
+which can be understood without the chat history. Do NOT answer the question, \
+just reformulate it if needed and otherwise return it as is."""
+contextualize_q_prompt = ChatPromptTemplate.from_messages([
+    ("system", contextualize_q_system_prompt),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
+
+qa_system_prompt = """You are an assistant specialized in GIS and remote sensing, with access to QGIS via the Model Context Protocol (MCP).
+
+You can:
+- Answer geospatial questions concisely,
+- Generate QGIS expressions and processing steps,
+- AND directly trigger QGIS operations by returning structured MCP function calls.
+
+Guidelines:
+- If a user asks for a spatial operation (e.g., NDVI, buffer, clip, reproject), generate and return a valid MCP command for it.
+- If context is available, use it. If not, fall back on your own knowledge.
+- Always return a plain-language explanation *plus* the MCP function in a code block (JSON format).
+- Only return "I don't know" if you cannot answer or trigger anything.
+
+Respond in 3 sentences or less unless detailed steps are needed.
+
+{context}"""
+qa_prompt = ChatPromptTemplate.from_messages([
+    ("system", qa_system_prompt),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+# Chat History Store
+store = {}
+def get_session_history(session_id: str) -> BaseChatMessageHistory:
+    if session_id not in store:
+        store[session_id] = ChatMessageHistory()
+    return store[session_id]
+
+# Full Chain with memory
+conversational_rag_chain = RunnableWithMessageHistory(
+    rag_chain,
+    get_session_history,
+    input_messages_key="input",
+    history_messages_key="chat_history",
+    output_messages_key="answer"
+)
 
 # Import GUI components conditionally
 try:
@@ -472,6 +541,7 @@ class ChatSession:
         self.llm_client = llm_client
         self.messages = []
         self.all_tools = []
+        self.session_id = "default-session"  # Add session ID for RAG
 
     async def cleanup_servers(self) -> None:
         """Clean up all servers properly."""
@@ -491,12 +561,22 @@ class ChatSession:
             return "Sorry, I received no response from the language model. Please try again."
         
         try:
-            tool_call = json.loads(llm_response)
-            if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
-                return await self._execute_tool(tool_call)
-            return llm_response
-        except json.JSONDecodeError:
-            return llm_response  # Not a JSON response, return as is
+            # Use RAG chain to process the response
+            result = conversational_rag_chain.invoke(
+                {"input": llm_response},
+                config={"configurable": {"session_id": self.session_id}}
+            )
+            answer = result.get("answer", "")
+
+            if not answer or "I don't know" in answer.lower():
+                logging.info("Fallback to general LLM")
+                fallback = general_llm.invoke(llm_response)
+                return fallback.content
+            else:
+                return answer
+        except Exception as e:
+            logging.error(f"Error during RAG processing: {e}")
+            return "An error occurred while processing your request."
 
     async def _execute_tool(self, tool_call: dict) -> str:
         """Execute a single tool call."""
