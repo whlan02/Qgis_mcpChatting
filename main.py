@@ -561,22 +561,12 @@ class ChatSession:
             return "Sorry, I received no response from the language model. Please try again."
         
         try:
-            # Use RAG chain to process the response
-            result = conversational_rag_chain.invoke(
-                {"input": llm_response},
-                config={"configurable": {"session_id": self.session_id}}
-            )
-            answer = result.get("answer", "")
-
-            if not answer or "I don't know" in answer.lower():
-                logging.info("Fallback to general LLM")
-                fallback = general_llm.invoke(llm_response)
-                return fallback.content
-            else:
-                return answer
-        except Exception as e:
-            logging.error(f"Error during RAG processing: {e}")
-            return "An error occurred while processing your request."
+            tool_call = json.loads(llm_response)
+            if isinstance(tool_call, dict) and "tool" in tool_call and "arguments" in tool_call:
+                return await self._execute_tool(tool_call)
+            return llm_response
+        except json.JSONDecodeError:
+            return llm_response  # Not a JSON response, return as is
 
     async def _execute_tool(self, tool_call: dict) -> str:
         """Execute a single tool call."""
