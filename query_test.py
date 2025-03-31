@@ -20,7 +20,7 @@ retriever = vectorstore.as_retriever()
 
 # LLMs
 llm = ChatOpenAI(model_name="gpt-4o-mini", openai_api_key=openai_api_key)
-general_llm = ChatOpenAI(model_name="gpt-4o", openai_api_key=openai_api_key)
+general_llm = ChatOpenAI(model_name="gpt-4o-mini", openai_api_key=openai_api_key)
 
 ### Prompt for question rephrasing
 contextualize_q_system_prompt = """Given a chat history and the latest user question \
