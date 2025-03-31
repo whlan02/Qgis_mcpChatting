@@ -72,14 +72,19 @@ def smart_invoke(query, session_id):
             {"input": query},
             config={"configurable": {"session_id": session_id}}
         )
-        answer = result.get("answer")
-        if not answer or "I don't know" in answer:
-            print("🤖 Falling back to general GPT...")
+        answer = result.get("answer", "")
+
+        if not answer or "I don't know" in answer.lower():
+            print("🟡 Source: GPT fallback (no relevant RAG context found)")
             fallback = general_llm.invoke(query)
             return fallback.content
-        return answer
+        else:
+            print("🟢 Source: RAG with memory")
+            return answer
+
     except Exception as e:
-        print(f"⚠️ Error during RAG: {e}")
+        print(f"🔴 Error during RAG: {e}")
+        print("🟡 Source: GPT fallback (error in RAG)")
         return general_llm.invoke(query).content
 
 ### Start chat loop
