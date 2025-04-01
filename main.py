@@ -22,6 +22,8 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 
+import markdown
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -66,10 +68,17 @@ Guidelines:
 Respond in 3 sentences or less unless detailed steps are needed.
 
 {context}"""
+
 qa_prompt = ChatPromptTemplate.from_messages([
-    ("system", qa_system_prompt),
     MessagesPlaceholder("chat_history"),
-    ("human", "{input}"),
+    ("human", "Use the following context to answer the question.\n\n"
+              "**Instructions:**\n"
+              "- Use **bold** for key terms.\n"
+              "- Use bullet points for lists.\n"
+              "- Format inline code with backticks.\n"
+              "- Use triple backticks and specify `json` for JSON blocks.\n\n"
+              "Context:\n{context}\n\n"
+              "Now, answer the user's question."),
 ])
 question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
 rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
@@ -373,7 +382,9 @@ class LLMClient:
                 max_tokens=4096,
                 top_p=1
             )
-            return response.choices[0].message.content
+            raw_text = response.choices[0].message.content
+            rendered_html = markdown.markdown(raw_text)  # Convert Markdown to HTML
+            return rendered_html
         except Exception as e:
             error_msg = f"OpenAI API error: {str(e)}"
             logging.error(error_msg)
