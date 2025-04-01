@@ -8,8 +8,7 @@ mcpchatting is based on the following projects:
 
 
 The mcpchatting system has been enhanced with expanded language model support and a built-in chat interface. This integrated solution removes dependency on external chat platforms, providing users with unrestricted access(using their own API keys) without the constraints typically associated with free-plan services like Claude.
-
-
+Moreover, it now uses Retrieval-Augmented Generation. It combines large language models (LLMs) with external knowledge sources (in this case QGIS docs) so that the LLM has more knowledge about e.g. QGIS functions. So far it was only tested with ChatGPT.
 
 ## Prerequisites
 
