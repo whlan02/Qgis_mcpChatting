@@ -47,8 +47,8 @@ You can get your profile folder in QGIS going to menu `Settings` -> `User profil
 ### 3. Clone the Repository
 
 ```bash
-git clone https://github.com/whlan02/mcpchatting
-cd mcpchatting
+git clone https://github.com/whlan02/Qgis_mcpChatting
+cd Qgis_mcpChatting
 ```
 
 ### 4. Set Up a Virtual Environment (Recommended)
